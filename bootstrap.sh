@@ -41,7 +41,7 @@ if [ ! -f "${FILENAME}" ]; then
 fi
 
 sed $SED_OPTIONS "s|REPLACE_IMAGE|${IMAGE_REPO}|g" **/*.yaml
-sed $SED_OPTIONS "s|PULL_SECRET_NAME|${PULL_SECRET_NAME}|g" 02-serviceaccount/serviceaccount.yaml deploy/**/*.yaml
+sed $SED_OPTIONS "s|PULL_SECRET_NAME|${PULL_SECRET_NAME}|g" 02-serviceaccount/serviceaccount.yaml
 sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml argocd/argo-app.yaml
 
@@ -50,17 +50,18 @@ oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.1.0/releas
 oc new-project dev-environment
 oc new-project stage-environment
 oc new-project cicd-environment
-oc apply -f $HOME/Downloads/${QUAYIO_USERNAME}-secret.yml
-oc create secret generic regcred --from-file=.dockerconfigjson=$HOME/Downloads/${QUAYIO_USERNAME}-auth.json --type=kubernetes.io/dockerconfigjson
-oc apply -f 01-serviceaccount
+oc apply -f "$HOME/Downloads/${QUAYIO_USERNAME}-secret.yml"
+oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/${QUAYIO_USERNAME}-auth.json" --type=kubernetes.io/dockerconfigjson
+oc apply -f 02-serviceaccount
 oc adm policy add-scc-to-user privileged -z demo-sa
 oc adm policy add-role-to-user edit -z demo-sa
 oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=dev-environment
 oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=stage-environment
-oc apply -f 02-templatesandbindings
-oc apply -f 03-interceptor
-oc apply -f 04-ci
-oc apply -f 05-cd
-oc apply -f 06-eventlisteners
-oc apply -f 07-routes
-oc create secret generic github-auth --from-file=$HOME/Downloads/token
+oc apply -f 03-tasks
+oc apply -f 04-templatesandbindings
+oc apply -f 05-interceptor
+oc apply -f 06-ci
+oc apply -f 07-cd
+oc apply -f 08-eventlisteners
+oc apply -f 09-routes
+oc create secret generic github-auth --from-file="$HOME/Downloads/token"
