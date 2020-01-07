@@ -1,0 +1,16 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: dev-ci-build-from-pr-binding
+spec:
+  params:
+  - name: gitref
+    value: $(body.pull_request.head.ref)
+  - name: gitsha
+    value: $(body.pull_request.head.sha)
+  - name: gitrepositoryurl
+    value: $(body.repository.clone_url)
+  - name: shortsha
+    value: $(body.intercepted.short_sha)
+  - name: fullname
+    value: $(body.intercepted.fullname)

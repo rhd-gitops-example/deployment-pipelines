@@ -1,0 +1,55 @@
+apiVersion: tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: cicd-event-listener
+spec:
+  serviceAccountName: demo-sa
+  triggers:
+    - name: dev-ci-build-from-pr
+      interceptor:
+        header:
+        - name: Pullrequest-Action
+          value: opened,synchronize
+        - name:  Pullrequest-Repo
+          value: GITHUB_REPO
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: dev-ci-build-from-pr-binding
+      template:
+        name: dev-ci-build-from-pr-template
+    - name: dev-cd-deploy-from-master
+      interceptor:
+        header:
+        - name: Push-Ref
+          value: master
+        - name:  Push-Repo
+          value: GITHUB_REPO
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: dev-cd-deploy-from-master-binding
+      template:
+        name: dev-cd-deploy-from-master-template
+    - name: stage-ci-dryrun-from-pr
+      interceptor:
+        header:
+        - name: Pullrequest-Action
+          value: opened,synchronize
+        - name:  Pullrequest-Repo
+          value: GITHUB_STAGE_REPO
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: stage-ci-dryrun-from-pr-binding
+      template:
+        name: stage-ci-dryrun-from-pr-template

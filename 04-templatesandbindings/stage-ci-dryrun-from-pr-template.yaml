@@ -1,0 +1,29 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: stage-ci-dryrun-from-pr-template
+spec:
+  params:
+  - name: gitref
+    description: The git revision
+    default: master
+  - name: gitrepositoryurl
+    description: The git repository url
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      name: stage-ci-pipeline-run-$(uid)
+    spec:
+      serviceAccountName: demo-sa
+      pipelineRef:
+        name: stage-ci-pipeline
+      resources:
+        - name: source-repo
+          resourceSpec:
+            type: git
+            params:
+            - name: revision
+              value: $(params.gitref)
+            - name: url
+              value: $(params.gitrepositoryurl)

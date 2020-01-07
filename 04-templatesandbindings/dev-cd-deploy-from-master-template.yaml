@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: dev-cd-deploy-from-master-template
+spec:
+  params:
+  - name: gitref
+    description: The git revision
+    default: master
+  - name: gitrepositoryurl
+    description: The git repository url
+  - name: shortsha
+    description: A shortened version of the SHA for the commit to deploy
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1alpha1
+    kind: PipelineRun
+    metadata:
+      name: dev-cd-pipeline-run-$(uid)
+    spec:
+      serviceAccountName: demo-sa
+      pipelineRef:
+        name: dev-cd-pipeline
+      resources:
+        - name: source-repo
+          resourceSpec:
+            type: git
+            params:
+            - name: revision
+              value: $(params.gitref)
+            - name: url
+              value: $(params.gitrepositoryurl)
+        - name: runtime-image
+          resourceSpec:
+            type: image
+            params:
+              - name: url
+                value: quay.io/kmcdermo/find-service:$(params.shortsha)

@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: create-github-status-task
+spec:
+  inputs:
+    params:
+    - name: REPO
+      description: The repo to publish the status update for e.g. tektoncd/triggers
+      type: string
+    - name: COMMIT_SHA
+      description: The specific commit to report a status for.
+      type: string
+    - name: STATE
+      description: The state to report error, failure, pending, or success.
+      type: string
+    - name: TARGET_URL
+      type: string
+      default: ""
+      description: The target URL to associate with this status.
+    - name: DESCRIPTION
+      type: string
+      description: A short description of the status.
+    - name: CONTEXT
+      type: string
+      description: A string label to differentiate this status from the status of other systems.
+  steps:
+  - name: start-status
+    image: quay.io/kmcdermo/github-tool:latest
+    workingDir: /workspace/source
+    env:
+    - name: GITHUB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: github-auth
+          key: token
+    command: ["/root/github-tool"]
+    args:
+      - "create-status"
+      - "--repo"
+      - "$(inputs.params.REPO)"
+      - "--sha"
+      - "$(inputs.params.COMMIT_SHA)"
+      - "--state"
+      - "$(inputs.params.STATE)"
+      - "--target-url"
+      - "$(inputs.params.TARGET_URL)"
+      - "--description"
+      - "$(inputs.params.DESCRIPTION)"
+      - "--context"
+      - "$(inputs.params.CONTEXT)"
