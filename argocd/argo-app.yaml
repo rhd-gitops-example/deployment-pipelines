@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: taxi-stage
+  name: APP_NAME-stage
 spec:
   project: default
   destination:
     namespace: stage-environment
     server: https://kubernetes.default.svc
   source:
-    repoURL: https://github.com/rhd-gitops-example/find-service-stage-config.git
+    repoURL: https://github.com/GITHUB_STAGE_REPO.git
     path: deploy
   syncPolicy:
     automated:
