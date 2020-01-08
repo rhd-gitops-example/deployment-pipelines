@@ -1,6 +1,7 @@
 #!/bin/sh
 QUAYIO_USERNAME=$1
 GITHUB_REPO=$2
+DEPLOYMENT_PATH=${3:-deploy}
 
 unameOut="$(uname -s)"
 case "${unameOut}" in
@@ -9,7 +10,7 @@ case "${unameOut}" in
     *)          echo "unknown OS ${unameOut}"; exit 1;;
 esac
 
-if [[ $# -ne 2 ]]; then
+if [[ $# -le 2 ]]; then
     echo 'usage: ./setup.sh <quayio-username> <github repo>'
     exit 1
 fi
@@ -22,11 +23,11 @@ if [[ ${#seg[@]} -ne 2 ]]; then
 fi
 
 ORGNAME=${seg[0]}
-APPNAME=${seg[1]}
+APP_NAME=${seg[1]}
 PULL_SECRET_NAME="${QUAYIO_USERNAME}-pull-secret"
-IMAGE_REPO="quay.io/${QUAYIO_USERNAME}/${APPNAME}"
-GITHUB_REPO="${ORGNAME}/${APPNAME}"
-GITHUB_STAGE_REPO="${ORGNAME}/${APPNAME}-stage-config"
+IMAGE_REPO="quay.io/${QUAYIO_USERNAME}/${APP_NAME}"
+GITHUB_REPO="${ORGNAME}/${APP_NAME}"
+GITHUB_STAGE_REPO="${ORGNAME}/${APP_NAME}-stage-config"
 
 FILENAME="$HOME/Downloads/${QUAYIO_USERNAME}-auth.json"
 if [ ! -f "${FILENAME}" ]; then
@@ -45,6 +46,7 @@ sed $SED_OPTIONS "s|PULL_SECRET_NAME|${PULL_SECRET_NAME}|g" 02-serviceaccount/se
 sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml argocd/argo-app.yaml
 sed $SED_OPTIONS "s|APP_NAME|${APP_NAME}|g" argocd/argo-app.yaml
+sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
 
 oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.9.2/release.yaml
 oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.1.0/release.yaml

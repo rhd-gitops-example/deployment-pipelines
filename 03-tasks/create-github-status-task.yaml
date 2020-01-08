@@ -34,7 +34,7 @@ spec:
         secretKeyRef:
           name: github-auth
           key: token
-    command: ["/root/github-tool"]
+    command: ["github-tool"]
     args:
       - "create-status"
       - "--repo"

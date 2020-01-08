@@ -34,4 +34,4 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/kmcdermo/find-service:$(params.shortsha)
+                value: REPLACE_IMAGE:$(params.shortsha)

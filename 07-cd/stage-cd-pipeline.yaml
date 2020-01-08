@@ -9,7 +9,7 @@ spec:
   tasks:
     - name: apply-source
       taskRef:
-        name: deploy-from-source
+        name: deploy-from-source-task
       resources:
         inputs:
           - name: source

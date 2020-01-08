@@ -11,7 +11,7 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: rhd-gitops-example/find-service
+          value: GITHUB_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -27,7 +27,7 @@ spec:
         - name: Push-Ref
           value: master
         - name:  Push-Repo
-          value: rhd-gitops-example/find-service
+          value: GITHUB_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -43,7 +43,7 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: rhd-gitops-example/find-service-stage-config
+          value: GITHUB_STAGE_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -59,7 +59,7 @@ spec:
         - name: Push-Ref
           value: master
         - name:  Push-Repo
-          value: rhd-gitops-example/find-service-stage-config
+          value: GITHUB_STAGE_REPO
         objectRef:
           kind: Service
           name: demo-interceptor

@@ -9,7 +9,7 @@ spec:
     server: https://kubernetes.default.svc
   source:
     repoURL: https://github.com/GITHUB_STAGE_REPO.git
-    path: deploy
+    path: DEPLOYMENT_PATH
   syncPolicy:
     automated:
       prune: true
