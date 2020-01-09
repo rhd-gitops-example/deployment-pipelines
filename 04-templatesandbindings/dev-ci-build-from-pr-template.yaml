@@ -13,11 +13,6 @@ spec:
     description: A shortened version of the SHA for the commit to deploy
   resourcetemplates:
   - apiVersion: tekton.dev/v1alpha1
-    kind: PipelineResource
-    metadata:
-      name: git-source-$(uid)
-    spec:
-  - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
     metadata:
       name: dev-ci-pipeline-run-$(uid)

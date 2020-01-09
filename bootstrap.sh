@@ -10,7 +10,7 @@ case "${unameOut}" in
     *)          echo "unknown OS ${unameOut}"; exit 1;;
 esac
 
-if [[ $# -le 2 ]]; then
+if [[ $# -lt 2 ]]; then
     echo 'usage: ./setup.sh <quayio-username> <github repo>'
     exit 1
 fi
