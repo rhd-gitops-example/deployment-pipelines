@@ -14,8 +14,10 @@ Automated Tekton deployments from GitHub
 ## Updating the configuration
 
  ```shell
- $ ./bootstrap.sh <QUAYIO_USERNAME> <main github repository>
+ $ ./bootstrap.sh <QUAYIO_USERNAME> <main github repository> <optional path to deployment.yaml>
  ```
+ 
+NOTE: IF YOUR deployment.yaml is NOT in a deploy directory at the top-level of your repository, you will need to provide the path as a parameter here, e.g. if you're keeping your deployment.yaml in `k8s` at the top-level, provide `k8s` as a third argument to the script.
 
 At this point, a lot of YAML files and things will scroll down the screen, and
 it will take some time for new containers to be spawned.
