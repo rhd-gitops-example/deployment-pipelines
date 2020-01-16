@@ -19,7 +19,8 @@ IFS='/' # assumes orgname/repo
 read -ra seg <<< "${GITHUB_REPO}"
 
 if [[ ${#seg[@]} -ne 2 ]]; then
-  echo 'github repo must be of the form orgname/repo'
+    echo 'github repo must be of the form orgname/repo'
+    exit 1
 fi
 
 ORGNAME=${seg[0]}
