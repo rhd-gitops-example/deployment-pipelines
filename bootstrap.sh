@@ -49,7 +49,7 @@ sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/
 sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
 
 oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.9.1/release.yaml
-oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.1.0/release.yaml
+oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.2.0/release.yaml
 oc new-project dev-environment
 oc new-project stage-environment
 oc new-project cicd-environment
