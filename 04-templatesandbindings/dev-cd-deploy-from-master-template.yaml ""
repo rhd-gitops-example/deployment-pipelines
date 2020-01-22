@@ -1,33 +1,25 @@
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: dev-ci-build-from-pr-template
+  name: dev-cd-deploy-from-master-template
 spec:
   params:
   - name: gitref
-    description: The git branch for this PR
-  - name: gitsha
-    description: the specific commit SHA.
+    description: The git revision
+    default: master
   - name: gitrepositoryurl
     description: The git repository url
   - name: shortsha
     description: A shortened version of the SHA for the commit to deploy
-  - name: fullname
-    description: The GitHub repository for this PullRequest.
   resourcetemplates:
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
     metadata:
-      name: dev-ci-pipeline-run-$(uid)
+      name: dev-cd-pipeline-run-$(uid)
     spec:
       serviceAccountName: demo-sa
       pipelineRef:
-        name: dev-ci-pipeline
-      params:
-      - name: REPO
-        value: $(params.fullname)
-      - name: COMMIT_SHA
-        value: $(params.gitsha)
+        name: dev-cd-pipeline
       resources:
         - name: source-repo
           resourceSpec:
@@ -42,4 +34,4 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/dpalodka/deployment-pipelines:$(params.gitref)-$(params.shortsha)
+                value: REPLACE_IMAGE:$(params.shortsha)

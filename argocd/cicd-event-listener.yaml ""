@@ -11,7 +11,7 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: DhanashriPalodkar/deployment-pipelines
+          value: GITHUB_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -27,7 +27,7 @@ spec:
         - name: Push-Ref
           value: master
         - name:  Push-Repo
-          value: DhanashriPalodkar/deployment-pipelines
+          value: GITHUB_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -43,7 +43,7 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: DhanashriPalodkar/deployment-pipelines-stage-config
+          value: GITHUB_STAGE_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -53,19 +53,3 @@ spec:
         name: stage-ci-dryrun-from-pr-binding
       template:
         name: stage-ci-dryrun-from-pr-template
-    - name: stage-cd-deploy-from-push
-      interceptor:
-        header:
-        - name: Push-Ref
-          value: master
-        - name:  Push-Repo
-          value: DhanashriPalodkar/deployment-pipelines-stage-config
-        objectRef:
-          kind: Service
-          name: demo-interceptor
-          apiVersion: v1
-          namespace: cicd-environment
-      binding:
-        name: stage-cd-deploy-from-push-binding
-      template:
-        name: stage-cd-deploy-from-push-template

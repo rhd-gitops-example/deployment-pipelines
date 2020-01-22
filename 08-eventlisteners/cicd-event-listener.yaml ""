@@ -43,7 +43,7 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: DhanashriPalodkar/deployment-pipelines-stage-config
+          value: GITHUB_STAGE_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
@@ -59,7 +59,7 @@ spec:
         - name: Push-Ref
           value: master
         - name:  Push-Repo
-          value: DhanashriPalodkar/deployment-pipelines-stage-config
+          value: GITHUB_STAGE_REPO
         objectRef:
           kind: Service
           name: demo-interceptor
