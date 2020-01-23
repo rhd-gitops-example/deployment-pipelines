@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: stage-ci-pipeline
+spec:
+  resources:
+    - name: source-repo
+      type: git
+  tasks:
+    - name: apply-source
+      taskRef:
+        name: deploy-from-source-task
+      resources:
+        inputs:
+          - name: source
+            resource: source-repo
+      params:
+      - name: NAMESPACE
+        value: stage-environment
+      - name: DRYRUN
+        value: "true"

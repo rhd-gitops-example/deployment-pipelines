@@ -42,4 +42,4 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/ghegde/pipelines:$(params.gitref)-$(params.shortsha)
+                value: REPLACE_IMAGE:$(params.gitref)-$(params.shortsha)

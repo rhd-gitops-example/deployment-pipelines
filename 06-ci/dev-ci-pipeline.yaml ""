@@ -1,0 +1,58 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: dev-ci-pipeline
+spec:
+  resources:
+    - name: source-repo
+      type: git
+    - name: runtime-image
+      type: image
+  params:
+    - name: REPO
+      type: string
+    - name: COMMIT_SHA
+      type: string
+  tasks:
+    - name: create-pending-status
+      taskRef:
+        name: create-github-status-task
+      params:
+      - name: REPO
+        value: $(params.REPO)
+      - name: COMMIT_SHA
+        value: $(params.COMMIT_SHA)
+      - name: STATE
+        value: "pending"
+      - name: DESCRIPTION
+        value: "Starting dev-ci-pipeline"
+      - name: CONTEXT
+        value: "dev-ci-pipeline"
+    - name: build-image
+      taskRef:
+        name: buildah-task
+      runAfter:
+        - create-pending-status
+      resources:
+        inputs:
+          - name: source
+            resource: source-repo
+        outputs:
+          - name: image
+            resource: runtime-image
+    - name: create-success-status
+      taskRef:
+        name: create-github-status-task
+      runAfter:
+        - build-image
+      params:
+      - name: REPO
+        value: $(params.REPO)
+      - name: COMMIT_SHA
+        value: $(params.COMMIT_SHA)
+      - name: STATE
+        value: "success"
+      - name: DESCRIPTION
+        value: "Completed dev-ci-pipeline"
+      - name: CONTEXT
+        value: "dev-ci-pipeline"

@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: dev-cd-deploy-from-master-template
+  name: stage-cd-deploy-from-push-template
 spec:
   params:
   - name: gitref
@@ -9,17 +9,15 @@ spec:
     default: master
   - name: gitrepositoryurl
     description: The git repository url
-  - name: shortsha
-    description: A shortened version of the SHA for the commit to deploy
   resourcetemplates:
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
     metadata:
-      name: dev-cd-pipeline-run-$(uid)
+      name: stage-cd-pipeline-run-$(uid)
     spec:
       serviceAccountName: demo-sa
       pipelineRef:
-        name: dev-cd-pipeline
+        name: stage-cd-pipeline
       resources:
         - name: source-repo
           resourceSpec:
@@ -29,9 +27,3 @@ spec:
               value: $(params.gitref)
             - name: url
               value: $(params.gitrepositoryurl)
-        - name: runtime-image
-          resourceSpec:
-            type: image
-            params:
-              - name: url
-                value: quay.io/ghegde/pipelines:$(params.shortsha)
