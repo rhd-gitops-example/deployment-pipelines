@@ -45,8 +45,7 @@ fi
 sed $SED_OPTIONS "s|REPLACE_IMAGE|${IMAGE_REPO}|g" **/*.yaml
 sed $SED_OPTIONS "s|PULL_SECRET_NAME|${PULL_SECRET_NAME}|g" 02-serviceaccount/serviceaccount.yaml
 sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
-sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml argocd/argo-app.yaml
-sed $SED_OPTIONS "s|APP_NAME|${APP_NAME}|g" argocd/argo-app.yaml
+sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
 
 oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.9.1/release.yaml
