@@ -22,14 +22,6 @@ NOTE: IF YOUR deployment.yaml is NOT in a deploy directory at the top-level of y
 At this point, a lot of YAML files and things will scroll down the screen, and
 it will take some time for new containers to be spawned.
 
-## ArgoCD support
-
-If you want ArgoCD support, then you'll need to do further configuration.
-
- ```shell
- $ cd pipelines && ./argo_setup.sh
- ```
-
 ## Public Image Repositories
 
 TODO
