@@ -340,7 +340,7 @@ spec:
         - "$(inputs.params.PATHTODEPLOYMENT)"
 ```
 
-Create template and bindings
+## Create template and bindings
 
 Create `dev-cd-deploy-from-master-binding`
 
@@ -362,7 +362,7 @@ spec:
     value: $(body.repository.clone_url)
 ```
 
-Create dev-cd-deploy-from-master-template 
+Create `dev-cd-deploy-from-master-template` 
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -545,6 +545,7 @@ spec:
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
 ```
+Create `stage-ci-dryrun-from-pr-template`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -578,7 +579,7 @@ spec:
               value: $(params.gitrepositoryurl)
 
 ```
-Create interceptor
+## Create interceptor
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -618,7 +619,7 @@ spec:
       targetPort: 8080
 EOF
 ```
-Create ci pipelines
+## Create ci pipelines
 
 Create `dev-ci-pipeline`
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
@@ -684,7 +685,7 @@ spec:
         value: "dev-ci-pipeline"
 ```
 
-Create stage CI Pipeline
+## Create stage CI Pipeline
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -781,4 +782,117 @@ spec:
       - name: NAMESPACE
         value: stage-environment
 EOF
+```
+## Create EventListener
+Create `cicd-event-listener`
+
+_NOTE_: Replace \<user\> with your gibhub user ID
+
+```shell
+cat <<EOF | oc apply -f -
+apiVersion: tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: cicd-event-listener
+spec:
+  serviceAccountName: demo-sa
+  triggers:
+    - name: dev-ci-build-from-pr
+      interceptor:
+        header:
+        - name: Pullrequest-Action
+          value: opened,synchronize
+        - name:  Pullrequest-Repo
+          value: <user>/taxi
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: dev-ci-build-from-pr-binding
+      template:
+        name: dev-ci-build-from-pr-template
+    - name: dev-cd-deploy-from-master
+      interceptor:
+        header:
+        - name: Push-Ref
+          value: master
+        - name:  Push-Repo
+          value: <user>/taxi
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: dev-cd-deploy-from-master-binding
+      template:
+        name: dev-cd-deploy-from-master-template
+    - name: stage-ci-dryrun-from-pr
+      interceptor:
+        header:
+        - name: Pullrequest-Action
+          value: opened,synchronize
+        - name:  Pullrequest-Repo
+          value: <user>/taxi-stage-config
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: stage-ci-dryrun-from-pr-binding
+      template:
+        name: stage-ci-dryrun-from-pr-template
+    - name: stage-cd-deploy-from-push
+      interceptor:
+        header:
+        - name: Push-Ref
+          value: master
+        - name:  Push-Repo
+          value: <user>/taxi-stage-config
+        objectRef:
+          kind: Service
+          name: demo-interceptor
+          apiVersion: v1
+          namespace: cicd-environment
+      binding:
+        name: stage-cd-deploy-from-push-binding
+      template:
+        name: stage-cd-deploy-from-push-template
+EOF
+```
+
+## Expose webhook listener
+
+Create `github-webhook-event-listener`
+
+```shell
+cat <<EOF | oc apply -f -
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: github-webhook-event-listener
+  namespace: cicd-environment
+  labels:
+    app.kubernetes.io/managed-by: EventListener
+    app.kubernetes.io/part-of: Triggers
+    eventlistener: cicd-event-listener
+spec:
+  to:
+    kind: Service
+    name: el-cicd-event-listener
+    weight: 100
+  port:
+    targetPort: 8080
+  wildcardPolicy: None
+EOF
+```
+## Create github-auth secret
+
+Create secret with the github token that you have regenerated/downloaded.
+
+```shell
+oc create secret generic github-auth --from-file="<path/to>/github-token.txt"
 ```
