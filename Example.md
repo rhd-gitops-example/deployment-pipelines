@@ -1,6 +1,16 @@
 # A Step by Step Guide to Deployment Example
 
-Automated Tekton deployments from GitHub
+Tekton deployments from GitHub
+
+## Requirements
+
+* Tekton Pipeline v0.9.1
+* Tekton Triggers v0.1.0
+* Set the following environment varialbes
+    * USER=\<OS user \>  (It should be automatically set by OS.)
+    * QUAY_USER=\<Ouay.io user\>
+    * GITHUB_USER=\<GitHub user\>
+
 
 ## Fork demo git repos
 
@@ -13,36 +23,18 @@ Fork the following repos to be used in your eample.
  Go to https://github.com/settings/tokens and generate an access token.   Download and save to `github-token.txt`.
 
  ![Screenshot](github-token.png)
-## Install Tekton Pipeline
- ```shell
-oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.9.1/release.yaml
- ```
 
-## Install Tekton Triggers
- ```shell
-oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.1.0/release.yaml
- ```
 
-## Install Tekton Dashboard (optional)
-
- ```shell
-oc apply --filename https://github.com/tektoncd/dashboard/releases/download/v0.3.0/dashboard-latest-openshift-tekton-dashboard-release.yaml --validate=false
-
-oc apply --filename https://github.com/tektoncd/dashboard/releases/download/v0.3.0/openshift-tekton-webhooks-extension-release.yaml --validate=false
- ```
 
 ## Create Projects/Namespaces
 
-  **_NOTE:_**  Replace \<user\> with your user ID. 
-
-
 ```shell
-oc new-project dev-environment-<user>
-oc new-project stage-environment-<user>
-oc new-project cicd-environment-<user>
+oc new-project dev-environment-$USER
+oc new-project stage-environment-$USER
+oc new-project cicd-environment-$USER
 ```
 
-**_NOTE:_**  Continue this setup in `cicd-envnironment-<user>` project.
+**_NOTE:_**  Continue this setup in `cicd-envnironment-$USER` project.
 
 
 ## Quay Credentials to push built image to Quay.io registry
@@ -50,16 +42,16 @@ oc new-project cicd-environment-<user>
  * Login to your Quay.io account that you can generate read/write credentials for.  In user's name pulldown menu, goto Account Settings -> Robot Account (button on the left).   Create a robot account for yourself.  Click your robot account link.
 
  ![Screenshot](quay-create-robot-account.png)
- * Download Kubernates Pull Secret (\<user\>-robot-secret.yml)
+ * Download Kubernates Pull Secret (\<Quay.io user\>-robot-secret.yml)
 
  ![Screenshot](quay-download-secret.png)
 
 
  * Create Kubernates secret from downloaded pull secret yaml
 
- **_NOTE:_**  Replace \<path\to\> with path to yaml file and  \<user\> with your user ID. 
+ **_NOTE:_**  Replace \<path\to\> with path to yaml file. 
 ```shell
-oc apply -f <path/to>/<user>-robot-secret.yml
+oc apply -f <path/to>/$QUAY_USER-robot-secret.yml
   ```
  You can check the created secrets. 
  
@@ -71,6 +63,9 @@ oc apply -f <path/to>/<user>-robot-secret.yml
 
 * Create Service Account (**replace \<user\> with your userid**)
 
+**_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
+
+
 ```shell
 cat <<EOF | oc apply -f -
 apiVersion: v1
@@ -78,7 +73,7 @@ kind: ServiceAccount
 metadata:
   name: demo-sa
 secrets:
-- name: <user>-robot-pull-secret
+- name: $QUAY_USER-robot-pull-secret
 EOF
 ```
 * Create Role
@@ -122,11 +117,10 @@ oc adm policy add-role-to-user edit -z demo-sa
 ```
 * Create Role Bindings for Service Accounts in `dev` and `stage` projects
 
-  **_NOTE:_**  Replace \<user\> with your user ID. 
 
 ```shell
-oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment-<user>:demo-sa --namespace=dev-environment-<user>
-oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment-<user>:demo-sa --namespace=stage-environment-<user>
+oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment-$USER:demo-sa --namespace=dev-environment-$USER
+oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment-$USER:demo-sa --namespace=stage-environment-$USER
 ```
 ## Create Tasks
 
@@ -185,11 +179,7 @@ spec:
 
 Create github status task
 
-Create github status task yaml file with the following content.  
-
- **_NOTE:_**  Replace \<user\> with your user ID. 
-
-Apply yaml file.   `oc appyl -f <yaml file>`
+* Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -226,7 +216,7 @@ spec:
     - name: GITHUB_TOKEN
       valueFrom:
         secretKeyRef:
-          name: <user>-github-auth
+          name: $GITHUB_USER-github-auth
           key: token
     command: ["github-tool"]
     args:
@@ -244,6 +234,13 @@ spec:
       - "--context"
       - "$(inputs.params.CONTEXT)"
 ```      
+* Run the following command to apply `temp.yaml` with `sed` command to replace string value
+
+**_NOTE:_**  Make sure `GIBHUB_USER` envrionment variable is set.
+
+```shell
+cat temp.yaml | sed s"/\$GITHUB_USER/$GITHUB_USER/" | oc apply -f -
+```
 
 Create `deploy-from-source-task`
 
@@ -364,12 +361,7 @@ spec:
 
 Create `dev-cd-deploy-from-master-template` 
 
-Create yaml file with the following content.  
-
-  **_NOTE:_**  Replace \<user\> with your Quay.io user ID. 
-
-Apply yaml file.   `oc appyl -f <yaml file>`
-
+* Create `temp.yaml` with the following content  
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -408,8 +400,15 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/<user>/taxi:$(params.shortsha)
+                value: quay.io/$QUAY_USER/taxi:$(params.shortsha)
 ```
+* Run the following command to apply `temp.yaml` with `sed` command to replace string
+
+**_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
+```shell
+cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
+```
+
 Create `dev-ci-build-from-pr-binding`
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
@@ -435,12 +434,7 @@ spec:
 ```
 Create `dev-ci-build-from-pr-template`
 
-Create yaml file with the following content.  
-
- **_NOTE:_**  Replace \<user\> with your Quay.io user ID. 
-
-Apply yaml file.   `oc appyl -f <yaml file>`
-
+* Create `temp.yaml` with the following content.
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -487,7 +481,14 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/<user>/taxi:$(params.gitref)-$(params.shortsha)
+                value: quay.io/$QUAY_USER/taxi:$(params.gitref)-$(params.shortsha)
+```
+* Run the following command to apply `temp.yaml` and `sed` command to replace string
+
+**_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
+
+```shell
+cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
 ```
 Create `stage-cd-deploy-from-push-binding`
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
@@ -693,8 +694,6 @@ spec:
 
 ## Create stage CI Pipeline
 
- **_NOTE:_**  Replace \<user\> with your user ID. 
-
 ```shell
 cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1alpha1
@@ -715,14 +714,12 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment-<user>
+        value: stage-environment-$USER
       - name: DRYRUN
         value: "true"
 EOF
 ```
 Create `dev-cd-pipeline`
-
- **_NOTE:_**  Replace \<user\> with your user ID. 
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -764,13 +761,12 @@ spec:
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
-        value: dev-environment-<user>
+        value: dev-environment-$USER
 EOF
 ```
 
 Create `stage-cd-pipeline`
 
- **_NOTE:_**  Replace \<user\> with your user ID. 
 
 ```shel
 cat <<EOF | oc apply -f -
@@ -792,13 +788,14 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment-<user>
+        value: stage-environment-$USER
 EOF
 ```
 ## Create EventListener
 Create `cicd-event-listener`
 
-_NOTE_: Replace \<user\> with your gibhub user ID
+**_NOTE:_**  Make sure `GITHUB_USER` envrionment variable is set.
+
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -815,12 +812,12 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: <user>/taxi
+          value: $GITHUB_USER/taxi
         objectRef:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment-<user>
+          namespace: cicd-environment-$USER
       binding:
         name: dev-ci-build-from-pr-binding
       template:
@@ -831,12 +828,12 @@ spec:
         - name: Push-Ref
           value: master
         - name:  Push-Repo
-          value: <user>/taxi
+          value: $GITHUB_USER/taxi
         objectRef:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment-<user>
+          namespace: cicd-environment-$USER
       binding:
         name: dev-cd-deploy-from-master-binding
       template:
@@ -847,12 +844,12 @@ spec:
         - name: Pullrequest-Action
           value: opened,synchronize
         - name:  Pullrequest-Repo
-          value: <user>/taxi-stage-config
+          value: $GITHUB_USER/taxi-stage-config
         objectRef:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment-<user>
+          namespace: cicd-environment-$USER
       binding:
         name: stage-ci-dryrun-from-pr-binding
       template:
@@ -863,12 +860,12 @@ spec:
         - name: Push-Ref
           value: master
         - name:  Push-Repo
-          value: <user>/taxi-stage-config
+          value: $GITHUB_USER/taxi-stage-config
         objectRef:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment-<user>
+          namespace: cicd-environment-$USER
       binding:
         name: stage-cd-deploy-from-push-binding
       template:
