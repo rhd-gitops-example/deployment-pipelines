@@ -36,4 +36,4 @@ spec:
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
-        value: dev-environment
+        value: ENV_PREFIX-dev-environment

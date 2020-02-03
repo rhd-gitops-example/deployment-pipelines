@@ -16,6 +16,6 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment
+        value: ENV_PREFIX-stage-environment
       - name: DRYRUN
         value: "true"
