@@ -33,13 +33,16 @@ oc apply --filename https://github.com/tektoncd/dashboard/releases/download/v0.3
 
 ## Create Projects/Namespaces
 
+  **_NOTE:_**  Replace \<user\> with your user ID. 
+
+
 ```shell
-oc new-project dev-environment
-oc new-project stage-environment
-oc new-project cicd-environment
+oc new-project dev-environment-<user>
+oc new-project stage-environment-<user>
+oc new-project cicd-environment-<user>
 ```
 
-**_NOTE:_**  Continue this setup in `cicd-envnironment` project.
+**_NOTE:_**  Continue this setup in `cicd-envnironment-<user>` project.
 
 
 ## Quay Credentials to push built image to Quay.io registry
@@ -51,8 +54,6 @@ oc new-project cicd-environment
 
  ![Screenshot](quay-download-secret.png)
 
- * Download Docker config (\<user\>-robot-auth.json)
- ![Screenshot](quay-download-docker-config.png)
 
  * Create Kubernates secret from downloaded pull secret yaml
 
@@ -60,13 +61,6 @@ oc new-project cicd-environment
 ```shell
 oc apply -f <path/to>/<user>-robot-secret.yml
   ```
- * Create secret from Docker Configuration
-
-  **_NOTE:_**  Replace \<path\to\> with path to yaml file and  \<user\> with your user ID. 
-
- ```shell
- oc create secret generic regcred --from-file=.dockerconfigjson="<path/to>/<user>-robot-auth.json" --type=kubernetes.io/dockerconfigjson
- ```
  You can check the created secrets. 
  
  ```shell
@@ -83,7 +77,6 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: demo-sa
-  namespace: cicd-environment
 secrets:
 - name: <user>-robot-pull-secret
 EOF
@@ -128,9 +121,12 @@ oc adm policy add-scc-to-user privileged -z demo-sa
 oc adm policy add-role-to-user edit -z demo-sa
 ```
 * Create Role Bindings for Service Accounts in `dev` and `stage` projects
+
+  **_NOTE:_**  Replace \<user\> with your user ID. 
+
 ```shell
-oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=dev-environment
-oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=stage-environment
+oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment-<user>:demo-sa --namespace=dev-environment-<user>
+oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment-<user>:demo-sa --namespace=stage-environment-<user>
 ```
 ## Create Tasks
 
@@ -189,7 +185,11 @@ spec:
 
 Create github status task
 
-Create github status task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Create github status task yaml file with the following content.  
+
+ **_NOTE:_**  Replace \<user\> with your user ID. 
+
+Apply yaml file.   `oc appyl -f <yaml file>`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -226,7 +226,7 @@ spec:
     - name: GITHUB_TOKEN
       valueFrom:
         secretKeyRef:
-          name: github-auth
+          name: <user>-github-auth
           key: token
     command: ["github-tool"]
     args:
@@ -364,7 +364,11 @@ spec:
 
 Create `dev-cd-deploy-from-master-template` 
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Create yaml file with the following content.  
+
+  **_NOTE:_**  Replace \<user\> with your Quay.io user ID. 
+
+Apply yaml file.   `oc appyl -f <yaml file>`
 
 
 ```shell
@@ -404,7 +408,7 @@ spec:
             type: image
             params:
               - name: url
-                value: REPLACE_IMAGE:$(params.shortsha)
+                value: quay.io/<user>/taxi:$(params.shortsha)
 ```
 Create `dev-ci-build-from-pr-binding`
 
@@ -431,7 +435,11 @@ spec:
 ```
 Create `dev-ci-build-from-pr-template`
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Create yaml file with the following content.  
+
+ **_NOTE:_**  Replace \<user\> with your Quay.io user ID. 
+
+Apply yaml file.   `oc appyl -f <yaml file>`
 
 
 ```shell
@@ -479,7 +487,7 @@ spec:
             type: image
             params:
               - name: url
-                value: REPLACE_IMAGE:$(params.gitref)-$(params.shortsha)
+                value: quay.io/<user>/taxi:$(params.gitref)-$(params.shortsha)
 ```
 Create `stage-cd-deploy-from-push-binding`
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
@@ -587,7 +595,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: demo-interceptor
-  namespace: cicd-environment
 spec:
   replicas: 1
   selector:
@@ -608,7 +615,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: demo-interceptor
-  namespace: cicd-environment
 spec:
   type: ClusterIP
   selector:
@@ -687,6 +693,8 @@ spec:
 
 ## Create stage CI Pipeline
 
+ **_NOTE:_**  Replace \<user\> with your user ID. 
+
 ```shell
 cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1alpha1
@@ -707,12 +715,14 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment
+        value: stage-environment-<user>
       - name: DRYRUN
         value: "true"
 EOF
 ```
 Create `dev-cd-pipeline`
+
+ **_NOTE:_**  Replace \<user\> with your user ID. 
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -754,11 +764,13 @@ spec:
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
-        value: dev-environment
+        value: dev-environment-<user>
 EOF
 ```
 
 Create `stage-cd-pipeline`
+
+ **_NOTE:_**  Replace \<user\> with your user ID. 
 
 ```shel
 cat <<EOF | oc apply -f -
@@ -780,7 +792,7 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment
+        value: stage-environment-<user>
 EOF
 ```
 ## Create EventListener
@@ -808,7 +820,7 @@ spec:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment
+          namespace: cicd-environment-<user>
       binding:
         name: dev-ci-build-from-pr-binding
       template:
@@ -824,7 +836,7 @@ spec:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment
+          namespace: cicd-environment-<user>
       binding:
         name: dev-cd-deploy-from-master-binding
       template:
@@ -840,7 +852,7 @@ spec:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment
+          namespace: cicd-environment-<user>
       binding:
         name: stage-ci-dryrun-from-pr-binding
       template:
@@ -856,7 +868,7 @@ spec:
           kind: Service
           name: demo-interceptor
           apiVersion: v1
-          namespace: cicd-environment
+          namespace: cicd-environment-<user>
       binding:
         name: stage-cd-deploy-from-push-binding
       template:
@@ -874,7 +886,6 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: github-webhook-event-listener
-  namespace: cicd-environment
   labels:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
@@ -893,6 +904,8 @@ EOF
 
 Create secret with the github token that you have regenerated/downloaded.
 
+ **_NOTE:_**  Replace \<user\> with your user ID. 
+
 ```shell
-oc create secret generic github-auth --from-file="<path/to>/github-token.txt"
+oc create secret generic <user>-github-auth --from-file="<path/to>/github-token.txt"
 ```
