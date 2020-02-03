@@ -48,8 +48,8 @@ sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-l
 sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
 
-oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.9.1/release.yaml
-oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.1.0/release.yaml
+oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.10.1/release.yaml
+oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.2.1/release.yaml
 oc new-project dev-environment
 oc new-project stage-environment
 oc new-project cicd-environment
@@ -62,7 +62,6 @@ oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cic
 oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=stage-environment
 oc apply -f 03-tasks
 oc apply -f 04-templatesandbindings
-oc apply -f 05-interceptor
 oc apply -f 06-ci
 oc apply -f 07-cd
 oc apply -f 08-eventlisteners
