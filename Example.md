@@ -483,6 +483,7 @@ spec:
 cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
 ```
 Create `stage-cd-deploy-from-push-binding`
+
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
 ```shell
@@ -501,6 +502,9 @@ spec:
 ```
 
 Create `stage-cd-deploy-from-push-template`
+
+Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+
 ```shell
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerTemplate
@@ -534,6 +538,9 @@ spec:
 ```
 
 Create `stage-ci-dryrun-from-pr-binding`
+
+Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+
 ```shell
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerBinding
@@ -547,6 +554,9 @@ spec:
     value: $(body.repository.clone_url)
 ```
 Create `stage-ci-dryrun-from-pr-template`
+
+Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
