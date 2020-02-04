@@ -830,8 +830,7 @@ EOF
 
 Create secret with the github token that you have regenerated/downloaded.
 
- **_NOTE:_**  Replace \<user\> with your user ID. 
-
+**_NOTE:_**  Make sure `GITHUB_USER` envrionment variable is set.
 ```shell
-oc create secret generic <user>-github-auth --from-file="<path/to>/github-token.txt"
+oc create secret generic ${GITHUB_USER}-github-auth --from-file="<path/to>/github-token.txt"
 ```
