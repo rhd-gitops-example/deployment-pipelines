@@ -844,3 +844,39 @@ Create secret with the github token that you have regenerated/downloaded.
 ```shell
 oc create secret generic ${GITHUB_USER}-github-auth --from-file="<path/to>/github-token.txt"
 ```
+
+## Create a Webhook
+
+Find out the `Payload URL` to be used in WebHook.   Run the following command to identify the external URL of the `github-webhook-event-listener`.   Add `http://` to the host to form `Payload URL` for Webhook.
+
+```shell 
+oc get route
+```
+
+![Screenshot](webhook-payload-url.png)
+
+
+Goto your demo `taxi` Github repository.
+
+```
+https://github.com/$GITHUB_USER/taxi
+```
+
+Goto Settings to create a Webhook as follow
+
+ ![Screenshot](create-webhooks.png)
+
+
+# Test it
+
+## Generate a Webhook Event
+
+* Submit a Pull Request to your `taxi` GitHub repository
+* Merge the Pull Request which should trigger a Pipeline Run in the CI Pipeline
+
+## Re-generate Webhook Event without Pull Request
+
+* Go back to the WebHooks Setting in your `taxi` GitHub repository and look for the last `Push` event.  You can re-deliever the event for testing without creating a Pull Request.
+
+ ![Screenshot](resend-push-event.png)
+
