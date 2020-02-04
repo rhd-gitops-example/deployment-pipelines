@@ -14,13 +14,14 @@ Automated Tekton deployments from GitHub
 ## Updating the configuration
 
  ```shell
- $ ./bootstrap.sh <QUAYIO_USERNAME> <main github repository> <optional path to deployment.yaml>
+ $ ./bootstrap.sh <QUAYIO_USERNAME> <main github repository> <prefix> <optional path to deployment.yaml>
  ```
- 
+
+The prefix is used to name the environments to avoid collisions in a shared cluster, you can use your initials, or username e.g. "kevin" would result in environments "kevin-dev-environment", "kevin-stage-environment" and "kevin-cicd-environment" being created.
+
 NOTE: IF YOUR deployment.yaml is NOT in a deploy directory at the top-level of your repository, you will need to provide the path as a parameter here, e.g. if you're keeping your deployment.yaml in `k8s` at the top-level, provide `k8s` as a third argument to the script.
 
-At this point, a lot of YAML files and things will scroll down the screen, and
-it will take some time for new containers to be spawned.
+At this point, a lot of YAML files and things will scroll down the screen, and it will take some time for new containers to be spawned.
 
 ## Public Image Repositories
 

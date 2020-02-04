@@ -2,7 +2,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: github-webhook-event-listener
-  namespace: cicd-environment
+  namespace: ENV_PREFIX-cicd-environment
   labels:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
