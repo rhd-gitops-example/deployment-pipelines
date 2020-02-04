@@ -4,8 +4,8 @@ Tekton deployments from GitHub
 
 ## Requirements
 
-* Tekton Pipeline v0.9.1
-* Tekton Triggers v0.1.0
+* Tekton Pipeline v0.10.1
+* Tekton Triggers v0.2.1
 * Set the following environment varialbes
     * USER=\<OS user \>  (It should be automatically set by OS.)
     * QUAY_USER=\<Ouay.io user\>
@@ -29,12 +29,12 @@ Fork the following repos to be used in your eample.
 ## Create Projects/Namespaces
 
 ```shell
-oc new-project dev-environment-$USER
-oc new-project stage-environment-$USER
-oc new-project cicd-environment-$USER
+oc new-project dev-environment-${USER}
+oc new-project stage-environment-${USER}
+oc new-project cicd-environment-${USER}
 ```
 
-**_NOTE:_**  Continue this setup in `cicd-envnironment-$USER` project.
+**_NOTE:_**  Continue this setup in `cicd-envnironment-${USER}` project.
 
 
 ## Quay Credentials to push built image to Quay.io registry
@@ -51,7 +51,7 @@ oc new-project cicd-environment-$USER
 
  **_NOTE:_**  Replace \<path\to\> with path to yaml file. 
 ```shell
-oc apply -f <path/to>/$QUAY_USER-robot-secret.yml
+oc apply -f <path/to>/${QUAY_USER}-robot-secret.yml
   ```
  You can check the created secrets. 
  
@@ -73,7 +73,7 @@ kind: ServiceAccount
 metadata:
   name: demo-sa
 secrets:
-- name: $QUAY_USER-robot-pull-secret
+- name: ${QUAY_USER}-robot-pull-secret
 EOF
 ```
 * Create Role
@@ -119,8 +119,8 @@ oc adm policy add-role-to-user edit -z demo-sa
 
 
 ```shell
-oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment-$USER:demo-sa --namespace=dev-environment-$USER
-oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment-$USER:demo-sa --namespace=stage-environment-$USER
+oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment-${USER}:demo-sa --namespace=dev-environment-${USER}
+oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment-${USER}:demo-sa --namespace=stage-environment-${USER}
 ```
 ## Create Tasks
 
@@ -352,9 +352,7 @@ metadata:
 spec:
   params:
   - name: gitref
-    value: $(body.intercepted.ref)
-  - name: shortsha
-    value: $(body.intercepted.short_sha)
+    value: $(body.head_commit.id)
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
 ```
@@ -375,8 +373,6 @@ spec:
     default: master
   - name: gitrepositoryurl
     description: The git repository url
-  - name: shortsha
-    description: A shortened version of the SHA for the commit to deploy
   resourcetemplates:
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
@@ -400,7 +396,7 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/$QUAY_USER/taxi:$(params.shortsha)
+                value: quay.io/$QUAY_USER/taxi:$(params.gitref)
 ```
 * Run the following command to apply `temp.yaml` with `sed` command to replace string
 
@@ -429,8 +425,6 @@ spec:
     value: $(body.repository.clone_url)
   - name: fullname
     value: $(body.repository.full_name)
-  - name: shortsha
-    value: $(body.intercepted.short_sha)
 ```
 Create `dev-ci-build-from-pr-template`
 
@@ -449,8 +443,6 @@ spec:
     description: the specific commit SHA.
   - name: gitrepositoryurl
     description: The git repository url
-  - name: shortsha
-    description: A shortened version of the SHA for the commit to deploy
   - name: fullname
     description: The GitHub repository for this PullRequest.
   resourcetemplates:
@@ -481,7 +473,7 @@ spec:
             type: image
             params:
               - name: url
-                value: quay.io/$QUAY_USER/taxi:$(params.gitref)-$(params.shortsha)
+                value: quay.io/$QUAY_USER/taxi:$(params.gitref)-$(params.gitsha)
 ```
 * Run the following command to apply `temp.yaml` and `sed` command to replace string
 
@@ -501,7 +493,7 @@ metadata:
 spec:
   params:
   - name: gitref
-    value: $(body.intercepted.ref)
+    value: $(body.ref)
   - name: gitsha
     value: $(body.commits.0.id)
   - name: gitrepositoryurl
@@ -586,46 +578,8 @@ spec:
               value: $(params.gitref)
             - name: url
               value: $(params.gitrepositoryurl)
-
 ```
-## Create interceptor
 
-```shell
-cat <<EOF | oc apply -f -
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: demo-interceptor
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: demo-interceptor
-  template:
-    metadata:
-     labels:
-       app.kubernetes.io/name: demo-interceptor
-    spec:
-      serviceAccountName: demo-sa
-      containers:
-        - name: interceptor
-          image: quay.io/kmcdermo/interceptor
-          imagePullPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: demo-interceptor
-spec:
-  type: ClusterIP
-  selector:
-    app.kubernetes.io/name: demo-interceptor
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-EOF
-```
 ## Create ci pipelines
 
 Create `dev-ci-pipeline`
@@ -714,7 +668,7 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment-$USER
+        value: stage-environment-${USER}
       - name: DRYRUN
         value: "true"
 EOF
@@ -761,7 +715,7 @@ spec:
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
-        value: dev-environment-$USER
+        value: dev-environment-${USER}
 EOF
 ```
 
@@ -788,17 +742,16 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment-$USER
+        value: stage-environment-${USER}
 EOF
 ```
 ## Create EventListener
 Create `cicd-event-listener`
 
-**_NOTE:_**  Make sure `GITHUB_USER` envrionment variable is set.
+* Save the following content to `temp.yaml`
 
 
 ```shell
-cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1alpha1
 kind: EventListener
 metadata:
@@ -807,70 +760,46 @@ spec:
   serviceAccountName: demo-sa
   triggers:
     - name: dev-ci-build-from-pr
-      interceptor:
-        header:
-        - name: Pullrequest-Action
-          value: opened,synchronize
-        - name:  Pullrequest-Repo
-          value: $GITHUB_USER/taxi
-        objectRef:
-          kind: Service
-          name: demo-interceptor
-          apiVersion: v1
-          namespace: cicd-environment-$USER
-      binding:
-        name: dev-ci-build-from-pr-binding
+      interceptors:
+        - cel:
+            filter: (header.match("X-GitHub-Event", "pull_request") && body.action == "opened" || body.action == "synchronize") && body.pull_request.head.repo.full_name == "$GITHUB_USER/taxi"
+      bindings:
+        - name: dev-ci-build-from-pr-binding
       template:
         name: dev-ci-build-from-pr-template
     - name: dev-cd-deploy-from-master
-      interceptor:
-        header:
-        - name: Push-Ref
-          value: master
-        - name:  Push-Repo
-          value: $GITHUB_USER/taxi
-        objectRef:
-          kind: Service
-          name: demo-interceptor
-          apiVersion: v1
-          namespace: cicd-environment-$USER
-      binding:
-        name: dev-cd-deploy-from-master-binding
+      interceptors:
+        - cel:
+            filter: (header.match("X-GitHub-Event", "push") && body.repository.full_name == "$GITHUB_USER/taxi") && body.ref.startsWith("refs/heads/master")
+      bindings:
+        - name: dev-cd-deploy-from-master-binding
       template:
         name: dev-cd-deploy-from-master-template
     - name: stage-ci-dryrun-from-pr
-      interceptor:
-        header:
-        - name: Pullrequest-Action
-          value: opened,synchronize
-        - name:  Pullrequest-Repo
-          value: $GITHUB_USER/taxi-stage-config
-        objectRef:
-          kind: Service
-          name: demo-interceptor
-          apiVersion: v1
-          namespace: cicd-environment-$USER
-      binding:
-        name: stage-ci-dryrun-from-pr-binding
+      interceptors:
+        - cel:
+            filter: (header.match("X-GitHub-Event", "pull_request") && body.action == "opened" || body.action == "synchronize") && body.pull_request.head.repo.full_name == "$GITHUB_USER/taxi-stage-config"
+      bindings:
+        - name: stage-ci-dryrun-from-pr-binding
       template:
         name: stage-ci-dryrun-from-pr-template
     - name: stage-cd-deploy-from-push
-      interceptor:
-        header:
-        - name: Push-Ref
-          value: master
-        - name:  Push-Repo
-          value: $GITHUB_USER/taxi-stage-config
-        objectRef:
-          kind: Service
-          name: demo-interceptor
-          apiVersion: v1
-          namespace: cicd-environment-$USER
-      binding:
-        name: stage-cd-deploy-from-push-binding
+      interceptors:
+        - cel:
+            filter: (header.match("X-GitHub-Event", "push") && body.repository.full_name == "$GITHUB_USER/taxi-stage-config") && body.ref.startsWith("refs/heads/master")
+      bindings:
+        - name: stage-cd-deploy-from-push-binding
       template:
         name: stage-cd-deploy-from-push-template
-EOF
+
+```
+
+* Run the following command to replace strings and apply yaml
+
+**_NOTE:_**  Make sure `GITHUB_USER` envrionment variable is set.
+
+```shell
+cat temp.yaml  | sed s"/\$GITHUB_USER/$GITHUB_USER/" | oc apply -f -
 ```
 
 ## Expose webhook listener
