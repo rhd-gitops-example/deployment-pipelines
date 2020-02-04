@@ -12,9 +12,9 @@ Tekton deployments from GitHub
     * GITHUB_USER=\<GitHub user\>
 
 
-## Fork demo git repos
+## Create demo git repos
 
-Fork the following repos to be used in your eample.
+Create your demo git reposs `taxi` and `taxi-stage-config`.  Import from the following repos, respectively.   
    * https://github.com/bigkevmcd/taxi
    * https://github.com/bigkevmcd/taxi-stage-config
 
