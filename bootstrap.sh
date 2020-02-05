@@ -1,7 +1,8 @@
 #!/bin/sh
 QUAYIO_USERNAME=$1
 GITHUB_REPO=$2
-DEPLOYMENT_PATH=${3:-deploy}
+ENV_PREFIX=$3
+DEPLOYMENT_PATH=${4:-deploy}
 
 unameOut="$(uname -s)"
 case "${unameOut}" in
@@ -10,8 +11,8 @@ case "${unameOut}" in
     *)          echo "unknown OS ${unameOut}"; exit 1;;
 esac
 
-if [[ $# -lt 2 ]]; then
-    echo 'usage: ./setup.sh <quayio-username> <github repo>'
+if [[ $# -lt 3 ]]; then
+    echo 'usage: ./setup.sh <quayio-username> <github repo> <prefix>'
     exit 1
 fi
 
@@ -47,19 +48,20 @@ sed $SED_OPTIONS "s|PULL_SECRET_NAME|${PULL_SECRET_NAME}|g" 02-serviceaccount/se
 sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
+sed $SED_OPTIONS "s|ENV_PREFIX|${ENV_PREFIX}|g" **/*.yaml
 
 oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.10.1/release.yaml
 oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.2.1/release.yaml
-oc new-project dev-environment
-oc new-project stage-environment
-oc new-project cicd-environment
+oc new-project ${ENV_PREFIX}-dev-environment
+oc new-project ${ENV_PREFIX}-stage-environment
+oc new-project ${ENV_PREFIX}-cicd-environment
 oc apply -f "$HOME/Downloads/${QUAYIO_USERNAME}-secret.yml"
 oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/${QUAYIO_USERNAME}-auth.json" --type=kubernetes.io/dockerconfigjson
 oc apply -f 02-serviceaccount
 oc adm policy add-scc-to-user privileged -z demo-sa
 oc adm policy add-role-to-user edit -z demo-sa
-oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=dev-environment
-oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=stage-environment
+oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=${ENV_PREFIX}-dev-environment
+oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=${ENV_PREFIX}-stage-environment
 oc apply -f 03-tasks
 oc apply -f 04-templatesandbindings
 oc apply -f 06-ci
