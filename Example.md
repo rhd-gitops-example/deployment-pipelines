@@ -46,13 +46,25 @@ oc new-project cicd-environment-${USER}
 
  ![Screenshot](quay-download-secret.png)
 
-
  * Create Kubernates secret from downloaded pull secret yaml
 
  **_NOTE:_**  Replace \<path\to\> with path to yaml file. 
 ```shell
 oc apply -f <path/to>/${QUAY_USER}-robot-secret.yml
   ```
+* Download Docker Configuration file to `<Quay user>-robot-auth.json`
+
+   ![Screenshot](quay-download-docker-config.png)
+
+* Create `regcred` secret from Docker Configuration file
+
+**_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
+**_NOTE:_**  Modify path to downloaded file accordingly.
+
+```shell
+oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/${QUAY_USER}-robot-auth.json" --type=kubernetes.io/dockerconfigjson
+```
+
  You can check the created secrets. 
  
  ```shell
@@ -74,6 +86,7 @@ metadata:
   name: demo-sa
 secrets:
 - name: ${QUAY_USER}-robot-pull-secret
+- name: regcred
 EOF
 ```
 * Create Role
