@@ -12,19 +12,18 @@ Tekton deployments from GitHub
     * GITHUB_USER=\<GitHub user\>
 
 
-## Create demo git repos
+## Create demo Git repos
 
-Create your demo git reposs `taxi` and `taxi-stage-config`.  Import from the following repos, respectively.   
+Login to Your GitHub account.  Create your demo git reposs `taxi` and `taxi-stage-config`.  Import from the following repos, respectively.   
    * https://github.com/bigkevmcd/taxi
    * https://github.com/bigkevmcd/taxi-stage-config
 
- Download your gihub access token
+ 
+ ## Download your gihub access token
  
  Go to https://github.com/settings/tokens and generate an access token.   Download and save to `github-token.txt`.
 
  ![Screenshot](github-token.png)
-
-
 
 ## Create Projects/Namespaces
 
@@ -39,9 +38,22 @@ oc new-project ${USER}-cicd-environment
 
 ## Quay Credentials to push built image to Quay.io registry
 
+ * Create `taxi` Quay repos.   Login to your Quay.io account and create a repository `taxi`
+
+  ![Screenshot](create-taxi-in-quay.png)
+
  * Login to your Quay.io account that you can generate read/write credentials for.  In user's name pulldown menu, goto Account Settings -> Robot Account (button on the left).   Create a robot account for yourself.  Click your robot account link.
 
  ![Screenshot](quay-create-robot-account.png)
+
+ * Select `Edit Repository Permissions` menu item
+
+  ![Screenshot](edit-token-permission.png)
+
+* Grant `write` permission to repository `taxi`
+
+ ![Screenshot](grant-write-permission.png)
+
  * Download Kubernates Pull Secret (\<Quay.io user\>-robot-secret.yml)
 
  ![Screenshot](quay-download-secret.png)
