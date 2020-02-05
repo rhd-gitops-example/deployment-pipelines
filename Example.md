@@ -29,9 +29,9 @@ Create your demo git reposs `taxi` and `taxi-stage-config`.  Import from the fol
 ## Create Projects/Namespaces
 
 ```shell
-oc new-project dev-environment-${USER}
-oc new-project stage-environment-${USER}
-oc new-project cicd-environment-${USER}
+oc new-project ${USER}-dev-environment
+oc new-project ${USER}-stage-environment
+oc new-project ${USER}-cicd-environment
 ```
 
 **_NOTE:_**  Continue this setup in `cicd-envnironment-${USER}` project.
@@ -132,8 +132,8 @@ oc adm policy add-role-to-user edit -z demo-sa
 
 
 ```shell
-oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment-${USER}:demo-sa --namespace=dev-environment-${USER}
-oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment-${USER}:demo-sa --namespace=stage-environment-${USER}
+oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=${USER}-cicd-environment:demo-sa --namespace=${USER}-dev-environment
+oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=${USER}-cicd-environment:demo-sa --namespace=${USER}-stage-environment
 ```
 ## Create Tasks
 
@@ -692,7 +692,7 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment-${USER}
+        value: ${USER}-stage-environment
       - name: DRYRUN
         value: "true"
 EOF
@@ -739,7 +739,7 @@ spec:
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
-        value: dev-environment-${USER}
+        value: ${USER}-dev-environment
 EOF
 ```
 
@@ -766,7 +766,7 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: stage-environment-${USER}
+        value: ${USER}-stage-environment
 EOF
 ```
 ## Create EventListener
