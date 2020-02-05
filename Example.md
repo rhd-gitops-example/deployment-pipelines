@@ -10,6 +10,7 @@ Tekton deployments from GitHub
     * USER=\<OS user \>  (It should be automatically set by OS.)
     * QUAY_USER=\<Ouay.io user\>
     * GITHUB_USER=\<GitHub user\>
+    * DEPLOYMENT_PATH=deploy
 
 
 ## Create demo Git repos
@@ -747,7 +748,7 @@ spec:
             resource: runtime-image
       params:
       - name: PATHTODEPLOYMENT
-        value: DEPLOYMENT_PATH
+        value: ${DEPLOYMENT_PATH}
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
