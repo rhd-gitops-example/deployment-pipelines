@@ -13,14 +13,17 @@ Tekton deployments from GitHub
     * DEPLOYMENT_PATH=deploy
 
 
-## Create demo Git repos
+## Create Demo Git Repositories
 
-Login to Your GitHub account.  Create your demo git reposs `taxi` and `taxi-stage-config`.  Import from the following repos, respectively.   
+Login to Your GitHub account.  Create your demo Git repositories `taxi` and `taxi-stage-config`.  Then, import from the following repos, respectively.   
    * https://github.com/bigkevmcd/taxi
    * https://github.com/bigkevmcd/taxi-stage-config
 
- 
- ## Download your gihub access token
+These are your test repositories where you will submit Pull Requests, merge them to master in order to trigger Pipeline Runs.
+
+ ## Download your Gihub Access Token
+
+ The [`create-github-status-task`](#create-github-status-task) Task needs Github user's access token to update Pull Request status.   You will create a Kubernates secret from the downloaed access token later in the Tutorial.
  
  Go to https://github.com/settings/tokens and generate an access token.   Download and save to `github-token.txt`.
 
@@ -34,10 +37,12 @@ oc new-project ${USER}-stage-environment
 oc new-project ${USER}-cicd-environment
 ```
 
-**_NOTE:_**  Continue this setup in `cicd-envnironment-${USER}` project.
+**_NOTE:_**  Continue this setup in `${USER}-cicd-envnironment` project.
 
 
 ## Quay Credentials to push built image to Quay.io registry
+
+ Some of the Tasks in this Tutorial involve pulling and pushing images to Quay image registry.   The image is to be built by CI Pipeline.   Before we can start creating Kuberetes resources, we need to obtain credentials for your Quay user account.
 
  * Create `taxi` Quay repos.   Login to your Quay.io account and create a repository `taxi`
 
@@ -88,6 +93,8 @@ oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/
 
 * Create Service Account (**replace \<user\> with your userid**)
 
+Service Account `demo-sa` is the cluster credentials that Pipeline Runs will be executed on.  Looking at the yaml snippet below, `demo-sa` has two secrets which we downloaded from Quay user account. 
+
 **_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
 
 
@@ -103,6 +110,8 @@ secrets:
 EOF
 ```
 * Create Role
+
+Next, we need to get `demo-sa` some privileges to perform Pipeline Tasks.   The following snippet creates `Role` which contains privileges.  We will then create a `RoleBinding` to grant these privileges (Role) to `demo-sa`.
 
  ```shell
 cat <<EOF | oc apply -f -
@@ -137,11 +146,20 @@ roleRef:
  EOF
  ```
  * Configure Service Account admin policy 
+
+We need to allow `demo-sa` to run as root in container.   This blog may help your understanding on Security Context Constraints. 
+[Understanding Service Accounts and SCCs](https://blog.openshift.com/understanding-service-accounts-sccs/).  We also need to bind`Edit`Role to `demo-sa`.  The second command below is another way to perform RoleBinding.  See [Managing Role-based Access Control (RBAC)](https://docs.openshift.com/container-platform/3.11/admin_guide/manage_rbac.html)
+
+Run the following commands setup additional security polcies for `demo-sa`.
  ```shell
 oc adm policy add-scc-to-user privileged -z demo-sa
 oc adm policy add-role-to-user edit -z demo-sa
 ```
+
+
 * Create Role Bindings for Service Accounts in `dev` and `stage` projects
+
+The following commnds bind `admin` Role to `demo-sa` in dev-environment and stage-environment projects.
 
 
 ```shell
@@ -149,6 +167,8 @@ oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=${U
 oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=${USER}-cicd-environment:demo-sa --namespace=${USER}-stage-environment
 ```
 ## Create Tasks
+
+The following is a replia of [buildah Task](https://github.com/tektoncd/catalog/tree/master/buildah).  You can read the documentation there for the usage of the Task.  In a nutshell, it has a `build` step and a `push` step.  It builds an image from source and push the built image to a registry.
 
 Create buildah task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -206,6 +226,8 @@ spec:
 Create github status task
 
 * Save the following content to `temp.yaml`
+
+### create-github-status-task
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
