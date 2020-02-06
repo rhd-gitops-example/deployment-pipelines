@@ -8,7 +8,7 @@ spec:
     - name: dev-ci-build-from-pr
       interceptors:
         - cel:
-            filter: (header.match("X-GitHub-Event", "pull_request") && body.action == "opened" || body.action == "synchronize") && body.pull_request.head.repo.full_name == "GITHUB_REPO"
+            filter: (header.match('X-GitHub-Event', 'pull_request') && body.action == 'opened' || body.action == 'synchronize') && body.pull_request.head.repo.full_name == 'GITHUB_REPO'
       bindings:
         - name: dev-ci-build-from-pr-binding
       template:
@@ -16,7 +16,7 @@ spec:
     - name: dev-cd-deploy-from-master
       interceptors:
         - cel:
-            filter: (header.match("X-GitHub-Event", "push") && body.repository.full_name == "GITHUB_REPO") && body.ref.startsWith("refs/heads/master")
+            filter: (header.match('X-GitHub-Event', 'push') && body.repository.full_name == 'GITHUB_REPO') && body.ref.startsWith('refs/heads/master')
       bindings:
         - name: dev-cd-deploy-from-master-binding
       template:
@@ -24,7 +24,7 @@ spec:
     - name: stage-ci-dryrun-from-pr
       interceptors:
         - cel:
-            filter: (header.match("X-GitHub-Event", "pull_request") && body.action == "opened" || body.action == "synchronize") && body.pull_request.head.repo.full_name == "GITHUB_STAGE_REPO"
+            filter: (header.match('X-GitHub-Event', 'pull_request') && body.action == 'opened' || body.action == 'synchronize') && body.pull_request.head.repo.full_name == 'GITHUB_STAGE_REPO'
       bindings:
         - name: stage-ci-dryrun-from-pr-binding
       template:
@@ -32,7 +32,7 @@ spec:
     - name: stage-cd-deploy-from-push
       interceptors:
         - cel:
-            filter: (header.match("X-GitHub-Event", "push") && body.repository.full_name == "GITHUB_STAGE_REPO") && body.ref.startsWith("refs/heads/master")
+            filter: (header.match('X-GitHub-Event', 'push') && body.repository.full_name == 'GITHUB_STAGE_REPO') && body.ref.startsWith('refs/heads/master')
       bindings:
         - name: stage-cd-deploy-from-push-binding
       template:
