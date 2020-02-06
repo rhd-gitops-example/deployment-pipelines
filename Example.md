@@ -907,3 +907,24 @@ Goto Settings to create a Webhook as follow
 
  ![Screenshot](resend-push-event.png)
 
+## Use Tekton Dashboard to check Pipeline Runs
+
+* Lookup the hostname of Tekton Dashboard
+
+```shell
+oc get route -n tekton-pipelines
+```
+ ![Screenshot](tekton-dashboard-hostname.png)
+
+In this case, we put https://tekton-dashboard-tekton-pipelines.apps.gitops1.devcluster.openshift.com in the browser.  
+
+* Pick the namespace according to the event generated.   E.g. `cicd-envrionment` if PR has been merged to the `taxi` master branch.
+
+* Click `PipelineRuns`.  A list of PipelineRuns will be shown.  Click the new/executing PipelineRun
+
+
+ ![Screenshot](pipeline-run-1.png)
+
+* The status and the logs are shown.
+
+ ![Screenshot](pipeline-run-2.png)
