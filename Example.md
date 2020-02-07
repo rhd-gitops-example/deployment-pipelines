@@ -23,13 +23,15 @@ These are your test repositories where you will submit Pull Requests, merge them
 
  ## Download your Gihub Access Token
 
- The [`create-github-status-task`](#create-github-status-task) Task needs Github user's access token to update Pull Request status.   You will create a Kubernates secret from the downloaed access token later in the Tutorial.
+ The [`create-github-status-task`](#create-github-status-task) needs Github user's access token to update Github repo status.   You will create a Kubernates secret from the downloaded access token later in the Tutorial.
  
- Go to https://github.com/settings/tokens and generate an access token.   Download and save to `github-token.txt`.
+ Go to https://github.com/settings/tokens and generate an access token.   Download and save it to `github-token.txt`.
 
  ![Screenshot](github-token.png)
 
 ## Create Projects/Namespaces
+
+Create the following projects.
 
 ```shell
 oc new-project ${USER}-dev-environment
@@ -42,7 +44,7 @@ oc new-project ${USER}-cicd-environment
 
 ## Quay Credentials to push built image to Quay.io registry
 
- Some of the Tasks in this Tutorial involve pulling and pushing images to Quay image registry.   The image is to be built by CI Pipeline.   Before we can start creating Kuberetes resources, we need to obtain credentials for your Quay user account.
+ Some of the Tasks in this Tutorial involve pulling and pushing images to Quay image registry.   (The image is to be built by CI Pipeline.)   Before we can start creating Kuberetes resources, we need to obtain credentials for your Quay user account.
 
  * Create `taxi` Quay repos.   Login to your Quay.io account and create a repository `taxi`
 
@@ -111,7 +113,7 @@ EOF
 ```
 * Create Role
 
-Next, we need to get `demo-sa` some privileges to perform Pipeline Tasks.   The following snippet creates `Role` which contains privileges.  We will then create a `RoleBinding` to grant these privileges (Role) to `demo-sa`.
+Next, we need to give `demo-sa` some privileges to perform Pipeline Tasks.   The following snippet creates `Role` which contains privileges.  We will then create a `RoleBinding` to grant these privileges (Role) to `demo-sa`.
 
  ```shell
 cat <<EOF | oc apply -f -
@@ -159,7 +161,7 @@ oc adm policy add-role-to-user edit -z demo-sa
 
 * Create Role Bindings for Service Accounts in `dev` and `stage` projects
 
-The following commnds bind `admin` Role to `demo-sa` in dev-environment and stage-environment projects.
+The following commands bind `admin` Cluster Role to `demo-sa` in dev-environment and stage-environment projects.
 
 
 ```shell
@@ -168,7 +170,9 @@ oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=$
 ```
 ## Create Tasks
 
-The following is a replia of [buildah Task](https://github.com/tektoncd/catalog/tree/master/buildah).  You can read the documentation there for the usage of the Task.  In a nutshell, it has a `build` step and a `push` step.  It builds an image from source and push the built image to a registry.
+### buildah-task
+
+The following is a replica of [buildah Task](https://github.com/tektoncd/catalog/tree/master/buildah).  You can read the documentation there for the usage of the Task.  In a nutshell, it has a `build` step and a `push` step.  It builds an image from source and push the built image to a registry.
 
 Create buildah task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -223,11 +227,11 @@ spec:
     emptyDir: {}
 ```
 
-Create github status task
+### create-github-status-task
+
+This Task updates Github repo status.  It executes commands from an image (quay.io/kmcdermo/github-tool) from the source https://github.com/bigkevmcd/github-tool.
 
 * Save the following content to `temp.yaml`
-
-### create-github-status-task
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -290,7 +294,9 @@ spec:
 cat temp.yaml | sed s"/\$GITHUB_USER/$GITHUB_USER/" | oc apply -f -
 ```
 
-Create `deploy-from-source-task`
+### deploy-from-source-task
+
+This command runs `kubectl -k` to deploy manifacts with [kuctomize](https://github.com/kubernetes-sigs/kustomize) option.  It executes commands on image quay.io/kmcdermo/k8s-kubectl.   The source is located in https://github.com/bigkevmcd/k8s-kubectl.
 
 Create task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -330,7 +336,9 @@ spec:
         - "$(inputs.params.PATHTODEPLOYMENT)"
 ```
 
-Create deploy-using-kubectl-task
+### deploy-using-kubectl-task
+
+Unlike `deploy-from-source-task`, this task runs kubectl -k to deploy manifacts with kuctomize option but it runs `replace-image` step to replace the image (by the built image) in the stock deployment.yaml.
 
 Create task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -386,12 +394,14 @@ spec:
         - "$(inputs.params.PATHTODEPLOYMENT)"
 ```
 
-## Create template and bindings
+## Create Trigger Templates and Trigger Bindings
 
-Create `dev-cd-deploy-from-master-binding`
+The relationship between Trigger Binding, Trigger Template and EventListener are as follow.   EventListener is a K8s Service that listens for external events (such as WebHook Event).  EventListener is configurated with actions to perform when matched events are received.  An action can trigger a PipelineRun.  In EventListener, it matches events and routes them to Trigger Binding/Template pairs.  Event message, Trigger Binding, and Trigger Template together are all we need to trigger a PipelineRun.  In order to start a PipelineRun, you will need PipelineResources to feed the PipelineRun.  Trigger Binding knows how to pick Event message's fields and use Trigger Template to create PipelineResources.  The target Pipeline information is in the Trigger Template.  This is how Trigger Binding, Tirgger Template, and EventListener work together to start a PipelineRun upon receiving an Event.  For more information, please see https://github.com/tektoncd/triggers
+
+
+### dev-cd-deploy-from-master-binding
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
-
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -406,7 +416,7 @@ spec:
     value: $(body.repository.clone_url)
 ```
 
-Create `dev-cd-deploy-from-master-template` 
+### dev-cd-deploy-from-master-template
 
 * Create `temp.yaml` with the following content  
 
@@ -454,7 +464,7 @@ spec:
 cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
 ```
 
-Create `dev-ci-build-from-pr-binding`
+### dev-ci-build-from-pr-binding
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -475,7 +485,7 @@ spec:
   - name: fullname
     value: $(body.repository.full_name)
 ```
-Create `dev-ci-build-from-pr-template`
+### dev-ci-build-from-pr-template
 
 * Create `temp.yaml` with the following content.
 
@@ -531,7 +541,8 @@ spec:
 ```shell
 cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
 ```
-Create `stage-cd-deploy-from-push-binding`
+
+### stage-cd-deploy-from-push-binding
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -550,7 +561,7 @@ spec:
     value: $(body.repository.clone_url)
 ```
 
-Create `stage-cd-deploy-from-push-template`
+### stage-cd-deploy-from-push-template
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -586,7 +597,7 @@ spec:
               value: $(params.gitrepositoryurl)
 ```
 
-Create `stage-ci-dryrun-from-pr-binding`
+### stage-ci-dryrun-from-pr-binding
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -602,7 +613,8 @@ spec:
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
 ```
-Create `stage-ci-dryrun-from-pr-template`
+
+### stage-ci-dryrun-from-pr-template
 
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
@@ -639,9 +651,10 @@ spec:
               value: $(params.gitrepositoryurl)
 ```
 
-## Create ci pipelines
+## Create CI Pipelines
 
-Create `dev-ci-pipeline`
+### dev-ci-pipeline
+
 Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
 
 ```shell
@@ -704,8 +717,7 @@ spec:
       - name: CONTEXT
         value: "dev-ci-pipeline"
 ```
-
-## Create stage CI Pipeline
+## stage-ci-pipeline
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -732,7 +744,8 @@ spec:
         value: "true"
 EOF
 ```
-Create `dev-cd-pipeline`
+
+### dev-cd-pipeline
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -778,10 +791,10 @@ spec:
 EOF
 ```
 
-Create `stage-cd-pipeline`
+### stage-cd-pipeline
 
 
-```shel
+```shell
 cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
@@ -805,7 +818,8 @@ spec:
 EOF
 ```
 ## Create EventListener
-Create `cicd-event-listener`
+
+### cicd-event-listener
 
 * Save the following content to `temp.yaml`
 
