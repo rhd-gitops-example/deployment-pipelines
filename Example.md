@@ -717,7 +717,7 @@ spec:
       - name: CONTEXT
         value: "dev-ci-pipeline"
 ```
-## stage-ci-pipeline
+### stage-ci-pipeline
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -790,9 +790,7 @@ spec:
         value: ${USER}-dev-environment
 EOF
 ```
-
 ### stage-cd-pipeline
-
 
 ```shell
 cat <<EOF | oc apply -f -
@@ -821,8 +819,17 @@ EOF
 
 ### cicd-event-listener
 
-* Save the following content to `temp.yaml`
+In this EventListener, the following triggers are configured.
 
+* When Pull Request is Opened/Synchronized on repo `taxi`, it triggers [dev-ci-build-from-pr-binding](#dev-ci-build-from-pr-binding)/[dev-ci-build-from-pr-template](#dev-ci-build-from-pr-template)
+* When Pull Request is Pushed to master branch of repo `taxi`, it triggers [dev-cd-deploy-from-master-binding](#dev-cd-deploy-from-master-binding)/[dev-cd-deploy-from-master-template](#dev-cd-deploy-from-master-template)
+* When Pull Request is Opened/Synchronized on repo `taxi-stage-config`, it triggers [stage-ci-dryrun-from-pr-binding](#stage-ci-dryrun-from-pr-binding)/[stage-ci-dryrun-from-pr-template](#stage-ci-dryrun-from-pr-template)
+* When Pull Request is Pushed to master branch of repo `taxi-stage-config`, it triggers [stage-cd-deploy-from-push-binding](#stage-cd-deploy-from-push-binding)/[stage-cd-deploy-from-push-template](#stage-cd-deploy-from-push-template)
+
+Follow the these steps to create `cicd-event-listener`
+
+
+* Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -877,7 +884,9 @@ cat temp.yaml  | sed s"/\$GITHUB_USER/$GITHUB_USER/" | oc apply -f -
 
 ## Expose webhook listener
 
-Create `github-webhook-event-listener`
+Create an OpenShift route to expose the EventLister Service
+
+### github-webhook-event-listener
 
 ```shell
 cat <<EOF | oc apply -f -
