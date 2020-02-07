@@ -826,6 +826,8 @@ In this EventListener, the following triggers are configured.
 * When Pull Request is Opened/Synchronized on repo `taxi-stage-config`, it triggers [stage-ci-dryrun-from-pr-binding](#stage-ci-dryrun-from-pr-binding)/[stage-ci-dryrun-from-pr-template](#stage-ci-dryrun-from-pr-template)
 * When Pull Request is Pushed to master branch of repo `taxi-stage-config`, it triggers [stage-cd-deploy-from-push-binding](#stage-cd-deploy-from-push-binding)/[stage-cd-deploy-from-push-template](#stage-cd-deploy-from-push-template)
 
+For more information about GitHub REST API, please see https://developer.github.com/v3/activity/events/types/#pushevent
+
 Follow the these steps to create `cicd-event-listener`
 
 
