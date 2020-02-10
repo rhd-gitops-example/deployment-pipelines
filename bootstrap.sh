@@ -26,7 +26,6 @@ fi
 
 ORGNAME=${seg[0]}
 APP_NAME=${seg[1]}
-PULL_SECRET_NAME="${QUAYIO_USERNAME}-pull-secret"
 IMAGE_REPO="quay.io/${QUAYIO_USERNAME}/${APP_NAME}"
 GITHUB_REPO="${ORGNAME}/${APP_NAME}"
 GITHUB_STAGE_REPO="${ORGNAME}/${APP_NAME}-stage-config"
@@ -44,7 +43,6 @@ if [ ! -f "${FILENAME}" ]; then
 fi
 
 sed $SED_OPTIONS "s|REPLACE_IMAGE|${IMAGE_REPO}|g" **/*.yaml
-sed $SED_OPTIONS "s|PULL_SECRET_NAME|${PULL_SECRET_NAME}|g" 02-serviceaccount/serviceaccount.yaml
 sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
 sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
@@ -55,7 +53,6 @@ oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.2.1/releas
 oc new-project ${ENV_PREFIX}-dev-environment
 oc new-project ${ENV_PREFIX}-stage-environment
 oc new-project ${ENV_PREFIX}-cicd-environment
-oc apply -f "$HOME/Downloads/${QUAYIO_USERNAME}-secret.yml"
 oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/${QUAYIO_USERNAME}-auth.json" --type=kubernetes.io/dockerconfigjson
 oc apply -f 02-serviceaccount
 oc adm policy add-scc-to-user privileged -z demo-sa
