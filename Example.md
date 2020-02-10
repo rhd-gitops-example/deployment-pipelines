@@ -44,7 +44,7 @@ oc new-project ${USER}-cicd-environment
 
 ## Quay Credentials to push built image to Quay.io registry
 
- Some of the Tasks in this Tutorial involve pulling and pushing images to Quay image registry.   (The image is to be built by CI Pipeline.)   Before we can start creating Kuberetes resources, we need to obtain credentials for your Quay user account.
+ Some of the Tasks in this Tutorial involve pushing images to Quay image registry.   (The image is to be built by CI Pipeline.)   Before we can start creating Kuberetes resources, we need to obtain credentials for your Quay user account.
 
  * Create `taxi` Quay repos.   Login to your Quay.io account and create a repository `taxi`
 
@@ -62,16 +62,6 @@ oc new-project ${USER}-cicd-environment
 
  ![Screenshot](grant-write-permission.png)
 
- * Download Kubernates Pull Secret (\<Quay.io user\>-robot-secret.yml)
-
- ![Screenshot](quay-download-secret.png)
-
- * Create Kubernates secret from downloaded pull secret yaml
-
- **_NOTE:_**  Replace \<path\to\> with path to yaml file. 
-```shell
-oc apply -f <path/to>/${QUAY_USER}-robot-secret.yml
-  ```
 * Download Docker Configuration file to `<Quay user>-robot-auth.json`
 
    ![Screenshot](quay-download-docker-config.png)
@@ -95,7 +85,7 @@ oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/
 
 * Create Service Account (**replace \<user\> with your userid**)
 
-Service Account `demo-sa` is the cluster credentials that Pipeline Runs will be executed on.  Looking at the yaml snippet below, `demo-sa` has two secrets which we downloaded from Quay user account. 
+Service Account `demo-sa` is the cluster credentials that Pipeline Runs will be executed on.  Looking at the yaml snippet below, `demo-sa` has the regcred secret which we downloaded from Quay user account. 
 
 **_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
 
@@ -107,7 +97,6 @@ kind: ServiceAccount
 metadata:
   name: demo-sa
 secrets:
-- name: ${QUAY_USER}-robot-pull-secret
 - name: regcred
 EOF
 ```
