@@ -15,7 +15,7 @@ Tekton deployments from GitHub
 
 ## Create Demo Git Repositories
 
-Login to Your GitHub account.  Create your demo Git repositories `taxi` and `taxi-stage-config`.  Then, import from the following repos, respectively.   
+Login to Your GitHub account.  Create your demo Git repositories `taxi` and `taxi-stage-config`.  Then, follow the instructions in Github to import from the following repos, respectively.   
    * https://github.com/bigkevmcd/taxi
    * https://github.com/bigkevmcd/taxi-stage-config
 
@@ -23,7 +23,7 @@ These are your test repositories where you will submit Pull Requests, merge them
 
  ## Download your Gihub Access Token
 
- The [`create-github-status-task`](#create-github-status-task) needs Github user's access token to update Github repo status.   You will create a Kubernates secret from the downloaded access token later in the Tutorial.
+ The [`create-github-status-task`](#create-github-status-task) needs Github user's access token to update Github repo status.   You will create a Kubernetes secret from the downloaded access token later in the Tutorial.
  
  Go to https://github.com/settings/tokens and generate an access token.   Download and save it to `github-token.txt`.
 
@@ -39,12 +39,12 @@ oc new-project ${USER}-stage-environment
 oc new-project ${USER}-cicd-environment
 ```
 
-**_NOTE:_**  Continue this setup in `${USER}-cicd-envnironment` project.
+**_NOTE:_**  Continue this setup in `${USER}-cicd-environment` project.
 
 
 ## Quay Credentials to push built image to Quay.io registry
 
- Some of the Tasks in this Tutorial involve pushing images to Quay image registry.   (The image is to be built by CI Pipeline.)   Before we can start creating Kuberetes resources, we need to obtain credentials for your Quay user account.
+ Some of the Tasks in this Tutorial involve pushing images to Quay image registry.   (The image is to be built by CI Pipeline.)   Before we can start creating Kubernetes resources, we need to obtain credentials for your Quay user account.
 
  * Create `taxi` Quay repos.   Login to your Quay.io account and create a repository `taxi`
 
@@ -939,7 +939,7 @@ Goto Settings to create a Webhook as follow
 
 ## Re-generate Webhook Event without Pull Request
 
-* Go back to the WebHooks Setting in your `taxi` GitHub repository and look for the last `Push` event.  You can re-deliever the event for testing without creating a Pull Request.
+* Go back to the WebHooks Setting in your `taxi` GitHub repository and look for the last `Push` event.  You can re-deliver the event for testing without creating a Pull Request.
 
  ![Screenshot](resend-push-event.png)
 
