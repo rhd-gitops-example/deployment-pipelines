@@ -273,7 +273,7 @@ spec:
     - name: GITHUB_TOKEN
       valueFrom:
         secretKeyRef:
-          name: $GITHUB_USER-github-auth
+          name: github-auth
           key: token
     command: ["github-tool"]
     args:
@@ -886,7 +886,7 @@ For more information about GitHub REST API, please see https://developer.github.
 Follow the these steps to create `cicd-event-listener`
 
 
-* Save the following content to `temp.yaml`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -975,14 +975,13 @@ oc apply -f temp.yaml
 
 Create secret with the github token that you have regenerated/downloaded.
 
-**_NOTE:_**  Make sure `GITHUB_USER` envrionment variable is set.
 ```shell
-oc create secret generic ${GITHUB_USER}-github-auth --from-file="<path/to>/github-token.txt"
+oc create secret generic github-auth --from-file="<path/to>/github-token.txt"
 ```
 
 ## Create a Webhook
 
-Find out the `Payload URL` to be used in WebHook.   Run the following command to identify the external URL of the `github-webhook-event-listener`.   Add `http://` to the host to form `Payload URL` for Webhook.
+Find out the `Payload URL` to be used in WebHook.   Run the following command to identify the external URL of the `github-webhook-event-listener`.   Add `http://` to the host to form `Payload URL` for Webhook.  Make sure Content type is `application/json`.
 
 ```shell 
 oc get route
