@@ -90,16 +90,22 @@ Service Account `demo-sa` is the cluster credentials that Pipeline Runs will be 
 **_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
 
 
+Save the following content to `temp.yaml`
+
 ```shell
-cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: demo-sa
 secrets:
 - name: regcred
-EOF
 ```
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
+
+
 * Create Role
 
 Next, we need to give `demo-sa` some privileges to perform Pipeline Tasks.   The following snippet creates `Role` which contains privileges.  We will then create a `RoleBinding` to grant these privileges (Role) to `demo-sa`.
