@@ -1,4 +1,4 @@
-# A Step by Step Guide to Deployment Example
+# A Step by Step Tutorial to Deployment Example
 
 Tekton deployments from GitHub
 
@@ -104,8 +104,9 @@ EOF
 
 Next, we need to give `demo-sa` some privileges to perform Pipeline Tasks.   The following snippet creates `Role` which contains privileges.  We will then create a `RoleBinding` to grant these privileges (Role) to `demo-sa`.
 
+Save the following content to `temp.yaml`
+
  ```shell
-cat <<EOF | oc apply -f -
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -117,13 +118,19 @@ rules:
 - apiGroups: ["tekton.dev"]
    resources: ["pipelineruns", "pipelineresources", "taskruns"]
    verbs: ["create"]
-EOF
 ```
+Apply `temp.yaml`
+```shell
+oc apply -f temp.yaml
+```
+
  * Create Role Binding
 
+ Save the following content to `temp.yaml`
+
+
  ```shell
- cat <<EOF | oc apply -f -
- apiVersion: rbac.authorization.k8s.io/v1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
    name: tekton-triggers-openshift-binding
@@ -134,8 +141,12 @@ roleRef:
    apiGroup: rbac.authorization.k8s.io
    kind: Role
    name: tekton-triggers-openshift-demo
- EOF
  ```
+
+Apply `temp.yaml`
+```shell
+oc apply -f temp.yaml
+```
  * Configure Service Account admin policy 
 
 We need to allow `demo-sa` to run as root in container.   This blog may help your understanding on Security Context Constraints. 
@@ -163,7 +174,7 @@ oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=$
 
 The following is a replica of [buildah Task](https://github.com/tektoncd/catalog/tree/master/buildah).  You can read the documentation there for the usage of the Task.  In a nutshell, it has a `build` step and a `push` step.  It builds an image from source and push the built image to a registry.
 
-Create buildah task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -216,11 +227,16 @@ spec:
     emptyDir: {}
 ```
 
+Apply `temp.yaml`
+```shell
+oc apply -f temp.yaml
+```
+
 ### create-github-status-task
 
 This Task updates Github repo status.  It executes commands from an image (quay.io/kmcdermo/github-tool) from the source https://github.com/bigkevmcd/github-tool.
 
-* Save the following content to `temp.yaml`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -275,7 +291,7 @@ spec:
       - "--context"
       - "$(inputs.params.CONTEXT)"
 ```      
-* Run the following command to apply `temp.yaml` with `sed` command to replace string value
+Run the following command to apply `temp.yaml` with `sed` command to replace string value
 
 **_NOTE:_**  Make sure `GIBHUB_USER` envrionment variable is set.
 
@@ -287,7 +303,7 @@ cat temp.yaml | sed s"/\$GITHUB_USER/$GITHUB_USER/" | oc apply -f -
 
 This command runs `kubectl -k` to deploy manifacts with [kuctomize](https://github.com/kubernetes-sigs/kustomize) option.  It executes commands on image quay.io/kmcdermo/k8s-kubectl.   The source is located in https://github.com/bigkevmcd/k8s-kubectl.
 
-Create task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -324,12 +340,15 @@ spec:
         - "-k"
         - "$(inputs.params.PATHTODEPLOYMENT)"
 ```
-
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
 ### deploy-using-kubectl-task
 
 Unlike `deploy-from-source-task`, this task runs kubectl -k to deploy manifacts with kuctomize option but it runs `replace-image` step to replace the image (by the built image) in the stock deployment.yaml.
 
-Create task yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -382,6 +401,10 @@ spec:
         - "-k"
         - "$(inputs.params.PATHTODEPLOYMENT)"
 ```
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
 
 ## Create Trigger Templates and Trigger Bindings
 
@@ -390,7 +413,7 @@ The relationship between Trigger Binding, Trigger Template and EventListener are
 
 ### dev-cd-deploy-from-master-binding
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -405,9 +428,14 @@ spec:
     value: $(body.repository.clone_url)
 ```
 
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
+
 ### dev-cd-deploy-from-master-template
 
-* Create `temp.yaml` with the following content  
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -446,7 +474,7 @@ spec:
               - name: url
                 value: quay.io/$QUAY_USER/taxi:$(params.gitref)
 ```
-* Run the following command to apply `temp.yaml` with `sed` command to replace string
+Run the following command to apply `temp.yaml` with `sed` command to replace string
 
 **_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
 ```shell
@@ -455,8 +483,7 @@ cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
 
 ### dev-ci-build-from-pr-binding
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
-
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -474,9 +501,14 @@ spec:
   - name: fullname
     value: $(body.repository.full_name)
 ```
-### dev-ci-build-from-pr-template
 
-* Create `temp.yaml` with the following content.
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
+
+### dev-ci-build-from-pr-template
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -523,7 +555,7 @@ spec:
               - name: url
                 value: quay.io/$QUAY_USER/taxi:$(params.gitref)-$(params.gitsha)
 ```
-* Run the following command to apply `temp.yaml` and `sed` command to replace string
+Run the following command to apply `temp.yaml` and `sed` command to replace string
 
 **_NOTE:_**  Make sure `QUAY_USER` envrionment variable is set.
 
@@ -533,7 +565,7 @@ cat temp.yaml  | sed s"/\$QUAY_USER/$QUAY_USER/" | oc apply -f -
 
 ### stage-cd-deploy-from-push-binding
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -549,10 +581,14 @@ spec:
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
 ```
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
 
 ### stage-cd-deploy-from-push-template
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -585,10 +621,14 @@ spec:
             - name: url
               value: $(params.gitrepositoryurl)
 ```
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
 
 ### stage-ci-dryrun-from-pr-binding
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -602,11 +642,13 @@ spec:
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
 ```
-
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
 ### stage-ci-dryrun-from-pr-template
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
-
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -639,12 +681,15 @@ spec:
             - name: url
               value: $(params.gitrepositoryurl)
 ```
-
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
 ## Create CI Pipelines
 
 ### dev-ci-pipeline
 
-Create yaml file with the following content.  Apply yaml file.   `oc appyl -f <yaml file>`
+Save the following content to `temp.yaml`
 
 ```shell
 apiVersion: tekton.dev/v1alpha1
@@ -706,10 +751,16 @@ spec:
       - name: CONTEXT
         value: "dev-ci-pipeline"
 ```
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
+
 ### stage-ci-pipeline
 
+Save the following content to `temp.yaml`
+
 ```shell
-cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
@@ -728,16 +779,18 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: ${USER}-stage-environment
+        value: $USER-stage-environment
       - name: DRYRUN
         value: "true"
-EOF
 ```
-
+```shell
+cat temp.yaml  | sed s"/\$USER/$USER/" | oc apply -f -
+```
 ### dev-cd-pipeline
 
+Save the following content to `temp.yaml`
+
 ```shell
-cat <<EOF | oc apply -f -
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
@@ -772,17 +825,24 @@ spec:
             resource: runtime-image
       params:
       - name: PATHTODEPLOYMENT
-        value: ${DEPLOYMENT_PATH}
+        value: $DEPLOYMENT_PATH
       - name: YAMLPATHTOIMAGE
         value: "spec.template.spec.containers[0].image"
       - name: NAMESPACE
-        value: ${USER}-dev-environment
-EOF
+        value: $USER-dev-environment
 ```
-### stage-cd-pipeline
+
+Run the following command to apply `temp.yaml` and `sed` command to replace string
+
+**_NOTE:_**  Make sure `QUAY_USER`and `DEPLOYMENT_PATH` envrionment variables are set.
 
 ```shell
-cat <<EOF | oc apply -f -
+cat temp.yaml  | sed s"/\$USER/$USER/" | sed s"/\$DEPLOYMENT_PATH/$DEPLOYMENT_PATH/" | oc apply -f -
+```
+
+### stage-cd-pipeline
+Save the following content to `temp.yaml`
+```shell
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
@@ -801,9 +861,15 @@ spec:
             resource: source-repo
       params:
       - name: NAMESPACE
-        value: ${USER}-stage-environment
-EOF
+        value: $USER-stage-environment
 ```
+Run the following command to apply `temp.yaml` and `sed` command to replace string
+
+
+```shell
+cat temp.yaml  | sed s"/\$USER/$USER/" | oc apply -f -
+```
+
 ## Create EventListener
 
 ### cicd-event-listener
@@ -865,7 +931,7 @@ spec:
 
 ```
 
-* Run the following command to replace strings and apply yaml
+Run the following command to replace strings and apply yaml
 
 **_NOTE:_**  Make sure `GITHUB_USER` envrionment variable is set.
 
@@ -879,8 +945,9 @@ Create an OpenShift route to expose the EventLister Service
 
 ### github-webhook-event-listener
 
+Save the following content to `temp.yaml`
+
 ```shell
-cat <<EOF | oc apply -f -
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
@@ -897,8 +964,13 @@ spec:
   port:
     targetPort: 8080
   wildcardPolicy: None
-EOF
 ```
+
+Apply temp.yaml
+```shell
+oc apply -f temp.yaml
+```
+
 ## Create github-auth secret
 
 Create secret with the github token that you have regenerated/downloaded.
