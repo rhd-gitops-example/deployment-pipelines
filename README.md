@@ -1,6 +1,9 @@
 # Deployment Pipelines
 
-Automated Tekton deployments from GitHub
+Automated Tekton deployments from GitHub.
+
+A complete step-by-step tutorial is provided [here](./tutorial/README.md).
+
 
 ## Requirements
 
