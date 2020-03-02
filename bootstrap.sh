@@ -57,8 +57,8 @@ oc create secret generic regcred --from-file=.dockerconfigjson="$HOME/Downloads/
 oc apply -f 02-serviceaccount
 oc adm policy add-scc-to-user privileged -z demo-sa
 oc adm policy add-role-to-user edit -z demo-sa
-oc create rolebinding demo-sa-admin-dev --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=${ENV_PREFIX}-dev-environment
-oc create rolebinding demo-sa-admin-stage --clusterrole=admin --serviceaccount=cicd-environment:demo-sa --namespace=${ENV_PREFIX}-stage-environment
+oc create rolebinding demo-sa-admin-dev --clusterrole=edit --serviceaccount=${ENV_PREFIX}-cicd-environment:demo-sa --namespace=${ENV_PREFIX}-dev-environment
+oc create rolebinding demo-sa-admin-stage --clusterrole=edit --serviceaccount=${ENV_PREFIX}-cicd-environment:demo-sa --namespace=${ENV_PREFIX}-stage-environment
 oc apply -f 03-tasks
 oc apply -f 04-templatesandbindings
 oc apply -f 06-ci
