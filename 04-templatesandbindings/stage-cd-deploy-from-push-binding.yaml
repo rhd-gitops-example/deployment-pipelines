@@ -7,6 +7,6 @@ spec:
   - name: gitref
     value: $(body.ref)
   - name: gitsha
-    value: $(body.commits.0.id)
+    value: $(body.commits[0].id)
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
