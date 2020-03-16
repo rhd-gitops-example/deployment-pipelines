@@ -9,6 +9,8 @@ spec:
     default: master
   - name: gitrepositoryurl
     description: The git repository url
+  - name: shortsha
+    description: A shortened version of the commit SHA, used to tag images.
   resourcetemplates:
   - apiVersion: tekton.dev/v1alpha1
     kind: PipelineRun
@@ -32,4 +34,4 @@ spec:
             type: image
             params:
               - name: url
-                value: REPLACE_IMAGE:$(params.gitref)
+                value: REPLACE_IMAGE:$(params.shortsha)

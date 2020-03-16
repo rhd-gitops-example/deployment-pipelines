@@ -8,3 +8,5 @@ spec:
     value: $(body.head_commit.id)
   - name: gitrepositoryurl
     value: $(body.repository.clone_url)
+  - name: shortsha
+    value: $(body.intercepted.short_sha)

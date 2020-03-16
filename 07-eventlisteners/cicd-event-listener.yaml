@@ -17,6 +17,9 @@ spec:
       interceptors:
         - cel:
             filter: (header.match('X-GitHub-Event', 'push') && body.repository.full_name == 'GITHUB_REPO') && body.ref.startsWith('refs/heads/master')
+            overlays:
+            - key: intercepted.short_sha
+              expression: truncate(body.head_commit.id, 7)
       bindings:
         - name: dev-cd-deploy-from-master-binding
       template:
