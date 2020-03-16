@@ -48,7 +48,7 @@ sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 07-eventlisteners/
 sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 06-cd/*.yaml
 sed $SED_OPTIONS "s|ENV_PREFIX|${ENV_PREFIX}|g" **/*.yaml
 
-oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.10.1/release.yaml
+oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.10.1/release.notags.yaml
 oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.3.1/release.yaml
 oc new-project ${ENV_PREFIX}-dev-environment
 oc new-project ${ENV_PREFIX}-stage-environment
