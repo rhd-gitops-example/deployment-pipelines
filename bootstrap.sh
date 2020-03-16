@@ -49,7 +49,7 @@ sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
 sed $SED_OPTIONS "s|ENV_PREFIX|${ENV_PREFIX}|g" **/*.yaml
 
 oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.10.1/release.yaml
-oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.2.1/release.yaml
+oc apply -f https://github.com/tektoncd/triggers/releases/download/v0.3.1/release.yaml
 oc new-project ${ENV_PREFIX}-dev-environment
 oc new-project ${ENV_PREFIX}-stage-environment
 oc new-project ${ENV_PREFIX}-cicd-environment
@@ -61,8 +61,8 @@ oc create rolebinding demo-sa-admin-dev --clusterrole=edit --serviceaccount=${EN
 oc create rolebinding demo-sa-admin-stage --clusterrole=edit --serviceaccount=${ENV_PREFIX}-cicd-environment:demo-sa --namespace=${ENV_PREFIX}-stage-environment
 oc apply -f 03-tasks
 oc apply -f 04-templatesandbindings
-oc apply -f 06-ci
-oc apply -f 07-cd
-oc apply -f 08-eventlisteners
-oc apply -f 09-routes
+oc apply -f 05-ci
+oc apply -f 06-cd
+oc apply -f 07-eventlisteners
+oc apply -f 08-routes
 oc create secret generic github-auth --from-file="$HOME/Downloads/token"
