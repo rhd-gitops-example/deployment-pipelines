@@ -43,9 +43,9 @@ if [ ! -f "${FILENAME}" ]; then
 fi
 
 sed $SED_OPTIONS "s|REPLACE_IMAGE|${IMAGE_REPO}|g" **/*.yaml
-sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
-sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 08-eventlisteners/cicd-event-listener.yaml
-sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 07-cd/*.yaml
+sed $SED_OPTIONS "s|GITHUB_REPO|${GITHUB_REPO}|g" 07-eventlisteners/cicd-event-listener.yaml
+sed $SED_OPTIONS "s|GITHUB_STAGE_REPO|${GITHUB_STAGE_REPO}|g" 07-eventlisteners/cicd-event-listener.yaml
+sed $SED_OPTIONS "s|DEPLOYMENT_PATH|${DEPLOYMENT_PATH}|g" 06-cd/*.yaml
 sed $SED_OPTIONS "s|ENV_PREFIX|${ENV_PREFIX}|g" **/*.yaml
 
 oc apply -f https://github.com/tektoncd/pipeline/releases/download/v0.10.1/release.yaml
